@@ -57,6 +57,9 @@ module OpenEHR
       rule(:archetype_marker) {
         sym_archetype }
 
+      rule(:archetype_id) {
+        v_archetype_id.as(:archetype_id) >> spaces?}
+
       rule(:arch_meta_data) {
         str('-/-') |
         str('(') >> arch_meta_data_items >> str(')') >> spaces? }
@@ -65,18 +68,24 @@ module OpenEHR
         arch_meta_data_item >> (str(';') >> arch_meta_data_item).repeat }
 
       rule(:arch_meta_data_item) {
-        sym_adl_version >> sym_eq >> version_string.as(:adl_version) |
-        sym_uid >> sym_eq >> v_dottd}
+        sym_adl_version >> sym_eq >> v_dotted_numeric.as(:adl_version) |
+        sym_uid >> sym_eq >> v_dotted_numeric |
+        sym_uid >> sym_eq >> v_value |
+        sym_is_controlled |
+        sym_is_generated |
+        v_identifier >> sym_eq >> v_identifier |
+        v_identifier >> sym_eq >> v_value |
+        v_identifier |
+        v_value }
 
-
-      rule(:archetype_id) {
-        ((namestr >> (str('.') >> alphanum_str).repeat >> str('::')).maybe >> namestr >> str('-') >> alphanum_str >> str('-') >> namestr >> str('.') >> namestr >> (str('-') >> alphanum_str).repeat >> str('.v') >> match('[0-9]').repeat(1) >> ((str('.') >> match([0-9]).repeat(1)).repeat(0,2) >> (str('-rc') | str('+') | str('+') >> match([0-9]).repeat(1)).maybe).maybe).as(:archetype_id) >> spaces? }
-
-      rule (:arch_meta_data) {
-        str('(') >>  arch_meta_data_items >> str(')') }
+      rule(:arch_specialisation) {
+        sym_specialize >> v_archetype_id >> spaces? }
 
       rule(:arch_language) {
-        sym_language >> spaces.maybe >> v_odin_text }
+        sym_language >> v_odin_text >> spaces? }
+
+      rule(:arch_description) {
+        sym_description >> v_odin_text >> spaces? }
 
       # ODIN
       rule(:v_odin_text) {
@@ -136,6 +145,13 @@ module OpenEHR
       rule(:namechar_paren) {
         match '[a-zA-Z0-9._\-()]' }
 
+      rule(:namestr) {
+        match("[a-zA-Z]") >> match('[a-zA-Z0-9_]').repeat(1) }
+
+      rule(:id_code_leader)
+      # rule(:alphanum_str) { match('[a-zA-Z0-9_]').repeat(1) }
+
+      # rule(:number) {match '[0-9]'}
       rule(:v_dotted_numeric) {
         number >> str('.') >> number >> (str('.') >> number).maybe}
 
@@ -158,12 +174,21 @@ module OpenEHR
       rule(:sym_template) {
         stri('template') >> spaces? }
 
+      rule(:sym_template_overlay) {
+        stri('template_overlay') >> spaces? }
+
+      rule(:sym_operational_template) {
+        stri('operational_template') >> spaces? }
+
       rule(:sym_adl_version) {
         stri('adl_version') >> spaces? }
 
       rule(:sym_is_controled) {
-        stri('is_controlled') >> spaces? }
-      
+        stri('controlled') >> spaces? }
+
+      rule(:sym_is_generated) {
+        stri('generated') }
+
       rule(:sym_language) {
         stri('language') >> spaces? }
 
@@ -292,7 +317,10 @@ module OpenEHR
         str('<') >> match('[a-zA-Z0-9,_<>]').repeat(1) >> str('>') }
 
       rule(:v_attribute_identifier) {
-        match('[_a-z]') >> idchar.repeat }
+        match('[_a-z]') >> idchar.repeat }      
+
+      rule(:v_archetype_id) {
+        ((namestr >> (str('.') >> alphanum_str).repeat >> str('::')).maybe >> namestr >> str('-') >> alphanum_str >> str('-') >> namestr >> str('.') >> namestr >> (str('-') >> alphanum_str).repeat >> str('.v') >> match('[0-9]').repeat(1) >> ((str('.') >> match([0-9]).repeat(1)).repeat(0,2) >> (str('-rc') | str('+') | str('+') >> match([0-9]).repeat(1)).maybe).maybe) }
 
       rule(:v_integer) {
         match('[0-9]').repeat(1) |
@@ -304,12 +332,11 @@ module OpenEHR
         (match('[0-9]').repeat(1) >> str('.') >> match('[0-9]').repeat(1) >>
          stri('e') >> match('[+-]').maybe >> match([0-9]).repeat(1)) }
 
-      rule(:namestr) {match("[a-zA-Z]") >> match('[a-zA-Z0-9_]').repeat(1) }
+      rule(:v_string) {
+        str('"') >> (str('\"')| match('[^"]')).repeat >> str('"') }
 
-      rule(:alphanum_str) { match('[a-zA-Z0-9_]').repeat(1) }
-
-      rule(:number) {match '[0-9]'}
-
+      rule(:v_char) {
+        match('[^\\\n\"]') }
     end
 
     class ADL15Transformer < ::Parslet::Transform
