@@ -69,23 +69,37 @@ module OpenEHR
 
       rule(:arch_meta_data_item) {
         sym_adl_version >> sym_eq >> v_dotted_numeric.as(:adl_version) |
-        sym_uid >> sym_eq >> v_dotted_numeric |
-        sym_uid >> sym_eq >> v_value |
+        # sym_uid >> sym_eq >> v_dotted_numeric |
+        # sym_uid >> sym_eq >> v_value |
         sym_is_controlled |
         sym_is_generated |
         v_identifier >> sym_eq >> v_identifier |
-        v_identifier >> sym_eq >> v_value |
-        v_identifier |
-        v_value }
+        # v_identifier >> sym_eq >> v_value |
+        v_identifier } #|
+#        v_value }
 
       rule(:arch_specialisation) {
-        sym_specialize >> v_archetype_id >> spaces? }
+        sym_specialize >> v_archetype_id }
 
       rule(:arch_language) {
-        sym_language >> v_odin_text >> spaces? }
+        sym_language >> v_odin_text }
 
       rule(:arch_description) {
-        sym_description >> v_odin_text >> spaces? }
+        sym_description >> v_odin_text }
+
+      rule(:arch_definition) {
+        sym_definition >> v_odin_text }
+
+      rule(:arch_rules) {
+        str('-/-') |
+        sym_rules >> v_rules_text }
+
+      rule(:arch_terminology) {
+        sym_terminology >> v_odin_text }
+
+      rule(:arch_annotations) {
+        str('-/-') |
+        sym_annotations >> v_odintext }
 
       # ODIN
       rule(:v_odin_text) {
@@ -148,10 +162,11 @@ module OpenEHR
       rule(:namestr) {
         match("[a-zA-Z]") >> match('[a-zA-Z0-9_]').repeat(1) }
 
-      rule(:id_code_leader)
-      # rule(:alphanum_str) { match('[a-zA-Z0-9_]').repeat(1) }
+      #rule(:id_code_leader)
 
-      # rule(:number) {match '[0-9]'}
+      rule(:alphanum_str) { match('[a-zA-Z0-9_]').repeat(1) }
+
+      rule(:number) {match '[0-9]'}
       rule(:v_dotted_numeric) {
         number >> str('.') >> number >> (str('.') >> number).maybe}
 
@@ -183,11 +198,20 @@ module OpenEHR
       rule(:sym_adl_version) {
         stri('adl_version') >> spaces? }
 
-      rule(:sym_is_controled) {
+      rule(:sym_is_controlled) {
         stri('controlled') >> spaces? }
 
       rule(:sym_is_generated) {
-        stri('generated') }
+        stri('generated') >> spaces? }
+
+      rule(:sym_specialize) {
+        (stri('specialised') | stri('specialized')) >> spaces? }
+
+      rule(:concept) {
+        stri('concept') >> spaces? }
+
+      rule(:sym_definition) {
+        stri('definition') >> spaces? }
 
       rule(:sym_language) {
         stri('language') >> spaces? }
@@ -203,6 +227,9 @@ module OpenEHR
 
       rule(:sym_annotations) {
         stri('annotations') >> spaces? }
+
+      rule(:sym_component_terminologies) {
+        stri('component_terminologies') >> spaces? }
 
       rule(:sym_start_dblock) {
         str('<') >> spaces? }
@@ -322,6 +349,8 @@ module OpenEHR
       rule(:v_archetype_id) {
         ((namestr >> (str('.') >> alphanum_str).repeat >> str('::')).maybe >> namestr >> str('-') >> alphanum_str >> str('-') >> namestr >> str('.') >> namestr >> (str('-') >> alphanum_str).repeat >> str('.v') >> match('[0-9]').repeat(1) >> ((str('.') >> match([0-9]).repeat(1)).repeat(0,2) >> (str('-rc') | str('+') | str('+') >> match([0-9]).repeat(1)).maybe).maybe) }
 
+      rule(:v_identifier) {
+        namestr }
       rule(:v_integer) {
         match('[0-9]').repeat(1) |
         (match('[0-9]').repeat(1) >> stri('e') >>
