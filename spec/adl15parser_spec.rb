@@ -12,9 +12,10 @@ describe OpenEHR::Parser::ADL15Parser do
     it 'should not raise error' do
       expect { archetype }.not_to raise_error
     end
-    # it 'ADL version equals 1.5' do
-    #   expect(archetype.adl_version).to eq '1.5'
-    # end
+
+    it 'ADL version equals 1.5' do
+      expect(archetype.adl_version).to eq '1.5'
+    end
 
     # it 'archetype_id is openEHR-DEMOGRAPHIC-ADDRESS.minimal.v1' do
 
