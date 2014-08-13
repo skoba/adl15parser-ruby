@@ -120,15 +120,6 @@ module OpenEHR
       rule(:attr_id) {
         v_attribute_identifier >> spaces? }
 
-      rule(:v_attribute_identifier) {
-        match('[a-z]') >> idchar.repeat }
-
-      rule(:v_generic_type_identifier) {
-        match('[A-Z]') >> idchar.repeat >> str('<') >> match('[a-zA-Z0-9,_]').repeat(1) >> str('>') }
-
-      rule(:v_type_identifier) {
-        match('[A-Z]') >> idchar.repeat }
-
       # Definitions
       rule(:alphanum) {
         match '[a-zA-Z0-9]' }
@@ -218,6 +209,106 @@ module OpenEHR
 
       rule(:sym_false) {
         stri('false') >> spaces? }
+
+      # valued strings
+      rule(:v_uri) {
+        match('[a-z]').repeat(1) >> str('://') >>
+        match('[^<>|\\{}^~"\[\])]').repeat >> spaces? }
+
+      rule(:v_qualified_term_code_ref) {
+        str('[') >> namechar_paren.repeat(1) >>
+        str('::') >> namechar.repeat(1) >> str(']') >> spaces? }
+
+      rule(:err_v_qualified_term_code_ref) {
+        str('[') >> namechare_paren.repeat(1) >>
+        str('::') >> namechar_space.repeat(1)>> str(']') >> spaces? }
+
+      rule(:v_local_term_code_ref) {
+        str('[') >> match('a(c|t)[0-9.]+') >> str(']') >> spaces? }
+
+      rule(:err_v_local_term_code_ref) {
+        str('[') >> alphanum >> match('[^\]]+') >> str(']') >> spaces? }
+
+      rule(:v_iso8601_extended_date_time) {
+        (match('[0-9]').repeat(4, 4) >> str('-') >>
+         match('[0-1]') >> match('[0-9]') >> str('-') >>
+         match('[0-3]') >> match('[0-9]') >> str('T') >>
+         match('[0-2]') >> match('[0-9]') >> str(':') >>
+         match('[0-6]') >> match('[0-9]') >> str(':') >>
+         match('[0-6]') >> match('[0-9]') >>
+         (str(',') >> match('[0-9]').repeat(1)).maybe >>
+         (str('Z') | (match('[+-]') >> match('[0-9]').repeat(4,4))).maybe) |
+        (match('[0-9]').repeat(4, 4) >> str('-') >>
+         match('[0-1]') >> match('[0-9]') >> str('-') >>
+         match('[0-3]') >> match('[0-9]') >> str('T') >>
+         match('[0-2]') >> match('[0-9]') >> str(':') >>
+         match('[0-6]') >> match('[0-9]') >>
+         (str('Z') | (match('[+-]') >> match('[0-9]').repeat(4,4))).maybe) |
+        (match('[0-9]').repeat(4, 4) >> str('-') >>
+         match('[0-1]') >> match('[0-9]') >> str('-') >>
+         match('[0-3]') >> match('[0-9]') >> str('T') >>
+         match('[0-2]') >> match('[0-9]') >> str(':') >>
+         (str('Z') | (match('[+-]') >> match('[0-9]').repeat(4,4))).maybe) }
+
+      rule(:v_iso8601_extended_time) {
+        (match('[0-2]') >> match('[0-9]') >> str(':') >>
+         match('[0-6]') >> match('[0-9]') >> str(':') >>
+         match('[0-6]') >> match('[0-9]') >>
+         (str(',') >> match('[0-9]').repeat(1)).maybe >>
+         (str('Z') | (match('[+-]') >> match('[0-9]').repeat(4,4))).maybe) |
+        (match('[0-2]') >> match('[0-9]') >> str(':') >>
+         match('[0-6]') >> match('[0-9]') >> str(':') >>
+         (str('Z') | (match('[+-]') >> match('[0-9]').repeat(4,4))).maybe) }
+
+      rule(:v_iso8601_extendate_date) {
+        (match('[0-9]').repeat(4, 4) >> str('-') >>
+         match('[0-1]') >> match('[0-9]') >> str('-') >>
+         match('[0-3]') >> match('[0-9]')) |
+        (match('[0-9]').repeat(4, 4) >> str('-') >>
+         match('[0-1]') >> match('[0-9]')) }
+
+      rule(:v_iso8601_duration) {
+        (str('P') >>
+        (match('[0-9]').repeat(1) >> stri('Y')).maybe >>
+        (match('[0-9]').repeat(1) >> stri('M')).maybe >>
+        (match('[0-9]').repeat(1) >> stri('W')).maybe >>
+        (match('[0-9]').repeat(1) >> stri('D')).maybe >>
+        str('T') >>
+        (match('[0-9]').repeat(1) >> stri('H')).maybe >>
+        (match('[0-9]').repeat(1) >> stri('M')).maybe >>
+        (match('[0-9]').repeat(1) >>
+         (str('.') >> match('[0-9]').repeat(1)).maybe >> stri('S')).maybe) |
+        (str('P') >>
+        (match('[0-9]').repeat(1) >> stri('Y')).maybe >>
+        (match('[0-9]').repeat(1) >> stri('M')).maybe >>
+        (match('[0-9]').repeat(1) >> stri('W')).maybe >>
+        (match('[0-9]').repeat(1) >> stri('D')).maybe) }
+
+      rule(:v_type_identifier) {
+        match('[A-Z]') >> idchar.repeat }
+
+      rule(:v_generic_type_identifier) {
+        match('[A-Z]') >> idchar.repeat >>
+        str('<') >> match('[a-zA-Z0-9,_<>]').repeat(1) >> str('>') }
+
+      rule(:v_attribute_identifier) {
+        match('[_a-z]') >> idchar.repeat }
+
+      rule(:v_integer) {
+        match('[0-9]').repeat(1) |
+        (match('[0-9]').repeat(1) >> stri('e') >>
+         match('[+-]').maybe >> match([0-9]).repeat(1)) }
+
+      rule(:v_real) {
+        match('[0-9]').repeat(1) >> str('.') >> match('[0-9]').repeat(1) |
+        (match('[0-9]').repeat(1) >> str('.') >> match('[0-9]').repeat(1) >>
+         stri('e') >> match('[+-]').maybe >> match([0-9]).repeat(1)) }
+
+      rule(:namestr) {match("[a-zA-Z]") >> match('[a-zA-Z0-9_]').repeat(1) }
+
+      rule(:alphanum_str) { match('[a-zA-Z0-9_]').repeat(1) }
+
+      rule(:number) {match '[0-9]'}
 
     end
 
