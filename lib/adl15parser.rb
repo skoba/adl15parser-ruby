@@ -69,14 +69,14 @@ module OpenEHR
 
       rule(:arch_meta_data_item) {
         sym_adl_version >> sym_eq >> v_dotted_numeric.as(:adl_version) |
-        # sym_uid >> sym_eq >> v_dotted_numeric |
-        # sym_uid >> sym_eq >> v_value |
+        sym_uid >> sym_eq >> v_dotted_numeric |
+        sym_uid >> sym_eq >> v_value |
         sym_is_controlled |
         sym_is_generated |
         v_identifier >> sym_eq >> v_identifier |
-        # v_identifier >> sym_eq >> v_value |
-        v_identifier } #|
-#        v_value }
+        v_identifier >> sym_eq >> v_value |
+        v_identifier |
+        v_value }
 
       rule(:arch_specialisation) {
         sym_specialize >> v_archetype_id }
@@ -122,9 +122,34 @@ module OpenEHR
         single_attr_object_block |
         container_attr_object_block }
 
+      rule(:container_attr_object_block) {
+        untyped_container_attr_object_block |
+        type_identifier >> untyped_container_attr_object_block }
+
+      rule(:untyped_container_attr_object_block) {
+        container_attr_object_block_head >> keyed_objects >> sym_end_dblock }
+
+      rule(:container_attr_object_block_head) {
+        sym_start_dblock }
+
+      rule(:keyed_objects) {
+        keyed_object.repeat }
+
+      rule(:keyed_object) {
+        object_key >> sym_eq >> object_block }
+
+      rule(:object_key) {
+        primitive_value }
+
       rule(:single_attr_object_block) {
+        untyped_single_attr_object_block |
         type_identifier.maybe >> untyped_single_attr_object_block }
 
+      rule(:untyped_single_attr_object_block) {
+        single_attr_object_complex_head >> attr_vals >> sym_end_dblock }
+
+      rule(:single_attr_object_complex_head) {
+        sym_start_dblock }
       # rule(:multiple_attr_object_block) { type_identifier.maybe >> untyped_multiple_attr_object_block }
       rule(:primitive_object_block) {
         untyped_single_attr_object_block |
@@ -143,9 +168,37 @@ module OpenEHR
       rule(:attr_id) {
         v_attribute_identifier >> spaces? }
 
+      rule(:object_reference_block) {
+        sym_start_dblock >> absolute_path_object_value >> sym_end_dblock }
+
+      # Path
+      rule(:absolute_path_object_value) {
+        absolute_path |
+        absolute_path_list }
+
+      rule(:absolute_path_list) {
+        absolute_path >> (str('.') >> absolute_path).repeat(1) |
+        absolute_path >> str('.') >> sym_list_continue }
+
+      rule(:absolute_path) {
+        str('/') >> relative_path.repeat }
+
+      rule(:relative_path) {
+        path_segment >> (str('/') >> path_segment).repeat }
+
+      rule(:path_segment) {
+        v_attribute_identifier >> str('[') >> v_string >> str(']') |
+        v_attribute_identifier }
+ 
       # Definitions
       rule(:alphanum) {
         match '[a-zA-Z0-9]' }
+
+      rule(:alphanum_str) {
+        match('[a-zA-Z0-9]_').repeat(1) }
+
+      rule(:value_str) {
+        match('[a-zA-Z0-9._\-]+').repeat(1) }
 
       rule(:idchar) {
         match '[a-zA-Z0-9_]'}
@@ -167,6 +220,7 @@ module OpenEHR
       rule(:alphanum_str) { match('[a-zA-Z0-9_]').repeat(1) }
 
       rule(:number) {match '[0-9]'}
+
       rule(:v_dotted_numeric) {
         number >> str('.') >> number >> (str('.') >> number).maybe}
 
@@ -230,6 +284,9 @@ module OpenEHR
 
       rule(:sym_component_terminologies) {
         stri('component_terminologies') >> spaces? }
+
+      rule(:sym_uid) {
+        stri('uid') >> spaces? }
 
       rule(:sym_start_dblock) {
         str('<') >> spaces? }
@@ -351,6 +408,10 @@ module OpenEHR
 
       rule(:v_identifier) {
         namestr }
+
+      rule(:v_value) {
+        value_str }
+
       rule(:v_integer) {
         match('[0-9]').repeat(1) |
         (match('[0-9]').repeat(1) >> stri('e') >>
