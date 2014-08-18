@@ -150,17 +150,75 @@ module OpenEHR
 
       rule(:single_attr_object_complex_head) {
         sym_start_dblock }
-      # rule(:multiple_attr_object_block) { type_identifier.maybe >> untyped_multiple_attr_object_block }
+
       rule(:primitive_object_block) {
-        untyped_single_attr_object_block |
-        (type_identifier >> untyped_single_primitive_object_block) }
+        untyped_primitive_object_block |
+        (type_identifier >> untyped_primitive_object_block) }
 
+      rule(:untyped_primitive_object_block) {
+        sym_start_dblock >> primitive_object >> sym_end_dblock }
+
+      rule(:primitive_object) {
+        primitive_interval_value |
+        primitive_list_value |
+        primitive_value |
+        term_code_list_value |
+        term_code }
+
+      rule(:primitive_value) {
+        uri_value |
+        duration_value |
+        date_time_value |
+        time_value |
+        date_value |
+        boolean_value |
+        real_value |
+        integer_value |
+        string_value |
+        character_value }
+
+      rule(:primitive_list_value) {
+        duration_list_value |
+        date_time_list_value |
+        time_list_value |
+        date_list_value |
+        boolean_list_value |
+        real_list_value |
+        integer_list_value |
+        string_list_value |
+        character_list_value }
+
+      rule(:primitive_interval_value) {
+        duration_interval_value |
+        date_time_interval_value |
+        time_interval_value |
+        date_interval_value |
+        boolean_value |
+        real_interval_value |
+        integer_interval_value }
+      
       rule(:type_identifier) {
-        str('(').maybe >> v_generic_type_identifier |
-        v_type_identifier >> str(')').maybe >> spaces? }
+        str('(') >> v_type_identifier >> str(')') |
+        str('(') >> v_generic_type_identifier >> str(')') |
+        v_type_identifier |
+        v_generic_type_identifier }
 
-      # rule(:untyped_single_attr_object_block) { single_attr_object_complex_head >> attr_vals.maybe >> sym_end_dblock }
-      rule(:single_attr_object_complex_head) { sym_start_dblock }
+      rule(:string_value) {
+        v_string }
+
+      rule(:string_list_value) {
+        v_string >> (str(',') >> v_string).repeat(1) >>
+        (str(',') >> sym_list_continue).maybe |
+        v_string >> sym_list_continue }
+
+      rule(:integer_value) {
+        str('+') >> v_integer |
+        str('-') >> v_integer |
+        v_integer }
+
+      rule(:integer_list_value) {
+        integer_value >> (str(',') >> integer_value).repeat(1) |
+        integer_value >> str(',') >> sym_list_continue }
 
       # rule(:untyped_multiple_attr_object_block) { multiple_attr_object_block_head }
       # rule(:multiple_attr_object_block_head){}
