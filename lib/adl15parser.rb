@@ -112,6 +112,9 @@ module OpenEHR
       rule(:attr_val) {
         attr_id >> sym_eq >> object_block >> spaces? }
 
+      rule(:attr_id) {
+        v_attribute_identifier >> spaces? }
+
       rule(:object_block) {
         complex_object_block |
         primitive_object_block |
@@ -220,11 +223,62 @@ module OpenEHR
         integer_value >> (str(',') >> integer_value).repeat(1) |
         integer_value >> str(',') >> sym_list_continue }
 
-      # rule(:untyped_multiple_attr_object_block) { multiple_attr_object_block_head }
-      # rule(:multiple_attr_object_block_head){}
+      rule(:integer_interval_value) {
+        sym_interval_delim >> integer_value > sym_ellipsis >> integer_value >> sym_interval_delim |
+        sym_interval_delim >> sym_gt >> integer_value >> sym_ellipsis >> integer_vale |
+        sym_interval_delim >> integer_value >> sym_ellipsis >> sym_lt >> integer_value >> sym_interval_value |
+        sym_interval_delim >> sym_gt >> integer_value >> sym_ellipsis >> sym_lt >> integer_value >> sym_interval_delim |
+        sym_interval_delim >> sym_lt >> integer_value >> sym_interval_delim |
+        sym_interval_delim >> sym_le >> integer_value >> sym_interval_delim |
+        sym_interval_delim >> sym_gt >> integer_value >> sym_interval_delim |
+        sym_interval_delim >> sym_ge >> integer_value >> sym_interval_delim |
+        sym_iterval_delim >> integer_value >> sym_interval_delim }
 
-      rule(:attr_id) {
-        v_attribute_identifier >> spaces? }
+      rule(:real_value) {
+        sym('+') >> v_real |
+        sym('-') >> v_real |
+        v_real }
+
+      rule(:real_list_value) {
+        real_value >> (str(',') >> real_value).repeat(1) |
+        real_value >> str(',') >> sym_list_continue }
+
+      rule(:real_interval_value) {
+        sym_interval_delim >> real_value >> sym_ellipsis >> real_value >> sym_interval_delim |
+        sym_interval_delim >> sym_gt >> real_value >> sym_ellipsis >> real_value >> sym_interval_delim |
+        sym_interval_delim >> real_value >> sym_ellipsis >> sym_lt >> real_value >> sym_interval_delim |
+        sym_interval_delim >> sym_gt >> real_value >> sym_ellipsis >> sym_lt >> real_value >> sym_interval_delim |
+        sym_interval_delim >> sym_lt >> real_value >> sym_interval_delim |
+        sym_interval_delim >> sym_le >> real_value >> sym_interval_delim |
+        sym_interval_delim >> sym_gt >> real_value >> sym_interval_delim |
+        sym_interval_delim >> sym_ge >> real_value >> sym_interval_delim |
+        sym_interval_delim >> real_value >> sym_interval_delim }
+
+      rule(:boolean_value) {
+        sym_true |
+        sym_false }
+
+      rule(:boolean_list_value) {
+        boolean_value >> (str(',') >> boolean_value).repeat(1) |
+        boolean_value >> str(',') >> sym_list_continue }
+
+      rule(:character_value) {
+        v_character }
+
+      rule(:character_list_value) {
+        character_value >> (str(',') >> character_value).repeat(1)
+        character_value >> str(',') >> sym_list_continue }
+
+      rule(:date_value) {
+        v_iso8601_extended_date }
+
+      rule(:date_list_value) {
+        date_value >> (str(',') >> date_value).repeat(1) |
+        date_value >> str(',') >> sym_list_continue }
+
+
+      rule(:uri_value) {
+        v_uri }
 
       rule(:object_reference_block) {
         sym_start_dblock >> absolute_path_object_value >> sym_end_dblock }
