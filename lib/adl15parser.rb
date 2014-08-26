@@ -10,7 +10,7 @@ module OpenEHR
           arch_mock = transformer.apply(tree)
           filestream.close
         rescue Parslet::ParseFailed => e
-          puts e, parser.root.error_tree
+#          puts e.error_tree
           puts e.cause.ascii_tree
         end        
         arch_mock
@@ -39,7 +39,9 @@ module OpenEHR
     end
 
     class ADL15Transformer < ::Parslet::Transform
-      rule(archetype_id: simple(:archetype_id), adl_version: simple(:adl_version)) { ArchMock.new(adl_version: adl_version, archetype_id: archetype_id)} 
+      rule(archetype_id: simple(:archetype_id),
+           adl_version: simple(:adl_version)) {
+        ArchMock.new(adl_version: adl_version, archetype_id: archetype_id) }
     end
 
     class ADL15Parslet < ::Parslet::Parser
@@ -57,8 +59,8 @@ module OpenEHR
       rule(:archetype) do
         archetype_marker >>
           arch_meta_data >>
-          archetype_id >> any.repeat #>>
-          # arch_language >>
+          archetype_id >> 
+          arch_language >> any.repeat #>>
           # arch_description >>
           # arch_definition >>
           # arch_rules >>
@@ -111,7 +113,7 @@ module OpenEHR
 
       rule(:arch_annotations) {
         str('-/-') |
-        sym_annotations >> v_odintext }
+        sym_annotations >> v_odin_text }
 
       # ODIN
       rule(:v_odin_text) {
@@ -131,7 +133,7 @@ module OpenEHR
         complex_object_block |
         primitive_object_block |
         object_reference_block |
-        sym_start_dblock >> sym_end_dblock}
+        (sym_start_dblock >> sym_end_dblock)}
 
       rule(:complex_object_block) {
         single_attr_object_block |
@@ -139,13 +141,13 @@ module OpenEHR
 
       rule(:container_attr_object_block) {
         untyped_container_attr_object_block |
-        type_identifier >> untyped_container_attr_object_block }
+        (type_identifier >> untyped_container_attr_object_block) }
 
       rule(:untyped_container_attr_object_block) {
         container_attr_object_block_head >> keyed_objects >> sym_end_dblock }
 
       rule(:container_attr_object_block_head) {
-        sym_start_dblock }
+        sym_start_dblock >> spaces? }
 
       rule(:keyed_objects) {
         keyed_object.repeat }
@@ -154,7 +156,7 @@ module OpenEHR
         object_key >> sym_eq >> object_block }
 
       rule(:object_key) {
-        primitive_value }
+        str('[') >> primitive_value >> str(']')}
 
       rule(:single_attr_object_block) {
         untyped_single_attr_object_block |
@@ -170,15 +172,15 @@ module OpenEHR
         untyped_primitive_object_block |
         (type_identifier >> untyped_primitive_object_block) }
 
-      rule(:untyped_primitive_object_block) {
+     rule(:untyped_primitive_object_block) {
         sym_start_dblock >> primitive_object >> sym_end_dblock }
 
       rule(:primitive_object) {
+        term_code_list_value |
+        term_code |
         primitive_interval_value |
         primitive_list_value |
-        primitive_value |
-        term_code_list_value |
-        term_code }
+        primitive_value }
 
       rule(:primitive_value) {
         uri_value |
@@ -391,10 +393,10 @@ module OpenEHR
         match '[a-zA-Z0-9]' }
 
       rule(:alphanum_str) {
-        match('[a-zA-Z0-9]_').repeat(1) }
+        match('[a-zA-Z0-9_]').repeat(1) }
 
       rule(:value_str) {
-        match('[a-zA-Z0-9._\-]+').repeat(1) }
+        match('[a-zA-Z0-9._\-]').repeat(1) }
 
       rule(:idchar) {
         match '[a-zA-Z0-9_]'}
@@ -420,17 +422,17 @@ module OpenEHR
       rule(:v_dotted_numeric) {
         number >> str('.') >> number >> (str('.') >> number).maybe}
 
-      rule(:space) { match '\s' }
+      rule(:space) { match '\\s' }
 
       # rule(:space?) { space.maybe? }
 
       rule(:spaces) { space.repeat }
 
       rule(:comment) {
-        str('--') >> any.repeat >> str("\n") }
+        str('--') >> any.repeat >> match("\\n") }
 
       rule(:spaces?) {
-        spaces >> comment.maybe >> spaces.maybe }
+        spaces >> comment.maybe >> spaces }
 
       # Symbols
       rule(:sym_archetype) {
@@ -528,14 +530,14 @@ module OpenEHR
         str('::') >> namechar.repeat(1) >> str(']') >> spaces? }
 
       rule(:err_v_qualified_term_code_ref) {
-        str('[') >> namechare_paren.repeat(1) >>
+        str('[') >> namechar_paren.repeat(1) >>
         str('::') >> namechar_space.repeat(1)>> str(']') >> spaces? }
 
       rule(:v_local_term_code_ref) {
-        str('[') >> match('a(c|t)[0-9.]+') >> str(']') >> spaces? }
+        str('[') >> str('a') >> (str('c') | str('t')) >> match('[0-9.]').repeat(1) >> str(']') >> spaces? }
 
       rule(:err_v_local_term_code_ref) {
-        str('[') >> alphanum >> match('[^\]]+') >> str(']') >> spaces? }
+        str('[') >> alphanum >> match('[^\]]').repeat(1) >> str(']') >> spaces? }
 
       rule(:v_iso8601_extended_date_time) {
         (match('[0-9]').repeat(4, 4) >> str('-') >>

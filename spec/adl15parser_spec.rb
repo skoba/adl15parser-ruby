@@ -17,9 +17,8 @@ describe OpenEHR::Parser::ADL15Parser do
       expect(archetype.adl_version).to eq '1.5'
     end
 
-    # it 'archetype_id is openEHR-DEMOGRAPHIC-ADDRESS.minimal.v1' do
-
-    #   expect(archetype.archetype_id).to eq 'openEHR-DEMOGRAPHIC-ADDRESS.minimal.v1'
-    # end
+    it 'archetype_id is openEHR-DEMOGRAPHIC-ADDRESS.minimal.v1' do
+      expect(archetype.archetype_id).to eq 'openEHR-DEMOGRAPHIC-ADDRESS.minimal.v1'
+    end
   end
 end
