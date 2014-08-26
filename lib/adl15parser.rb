@@ -5,19 +5,27 @@ module OpenEHR
   module Parser
     class ADL15Parser < OpenEHR::Parser::Base
       def parse
-        transformer.apply(parslet_engine.parse(filestream.read))
+        begin
+          tree = parslet_engine.parse(filestream.read)
+          arch_mock = transformer.apply(tree)
+          filestream.close
+        rescue Parslet::ParseFailed => e
+          puts e, parser.root.error_tree
+          puts e.cause.ascii_tree
+        end        
+        arch_mock
       end
 
       def filestream
-        File.open(@filename, 'r:bom|utf-8')
+        @filestream ||= File.open(@filename, 'r:bom|utf-8')
       end
 
       def parslet_engine
-        ADL15Parslet.new
+        @adl15parslet ||= ADL15Parslet.new
       end
 
       def transformer
-        ADL15Transformer.new
+        @adl15transformer ||= ADL15Transformer.new
       end
     end
 
@@ -28,6 +36,10 @@ module OpenEHR
         @adl_version = attribute[:adl_version]
         @archetype_id = attribute[:archetype_id]
       end
+    end
+
+    class ADL15Transformer < ::Parslet::Transform
+      rule(archetype_id: simple(:archetype_id), adl_version: simple(:adl_version)) { ArchMock.new(adl_version: adl_version, archetype_id: archetype_id)} 
     end
 
     class ADL15Parslet < ::Parslet::Parser
@@ -45,13 +57,13 @@ module OpenEHR
       rule(:archetype) do
         archetype_marker >>
           arch_meta_data >>
-          archetype_id >>
-          arch_language >>
-          arch_description >>
-          arch_definition >>
-          arch_rules >>
-          arch_terminology >>
-          arch_annotations
+          archetype_id >> any.repeat #>>
+          # arch_language >>
+          # arch_description >>
+          # arch_definition >>
+          # arch_rules >>
+          # arch_terminology >>
+          # arch_annotations
       end
 
       rule(:archetype_marker) {
@@ -224,19 +236,19 @@ module OpenEHR
         integer_value >> str(',') >> sym_list_continue }
 
       rule(:integer_interval_value) {
-        sym_interval_delim >> integer_value > sym_ellipsis >> integer_value >> sym_interval_delim |
-        sym_interval_delim >> sym_gt >> integer_value >> sym_ellipsis >> integer_vale |
-        sym_interval_delim >> integer_value >> sym_ellipsis >> sym_lt >> integer_value >> sym_interval_value |
+        sym_interval_delim >> integer_value >> sym_ellipsis >> integer_value >> sym_interval_delim |
+        sym_interval_delim >> sym_gt >> integer_value >> sym_ellipsis >> integer_value |
+        sym_interval_delim >> integer_value >> sym_ellipsis >> sym_lt >> integer_value >> sym_interval_delim |
         sym_interval_delim >> sym_gt >> integer_value >> sym_ellipsis >> sym_lt >> integer_value >> sym_interval_delim |
         sym_interval_delim >> sym_lt >> integer_value >> sym_interval_delim |
         sym_interval_delim >> sym_le >> integer_value >> sym_interval_delim |
         sym_interval_delim >> sym_gt >> integer_value >> sym_interval_delim |
         sym_interval_delim >> sym_ge >> integer_value >> sym_interval_delim |
-        sym_iterval_delim >> integer_value >> sym_interval_delim }
+        sym_interval_delim >> integer_value >> sym_interval_delim }
 
       rule(:real_value) {
-        sym('+') >> v_real |
-        sym('-') >> v_real |
+        str('+') >> v_real |
+        str('-') >> v_real |
         v_real }
 
       rule(:real_list_value) {
@@ -263,22 +275,94 @@ module OpenEHR
         boolean_value >> str(',') >> sym_list_continue }
 
       rule(:character_value) {
-        v_character }
+        v_character >> spaces? }
 
       rule(:character_list_value) {
         character_value >> (str(',') >> character_value).repeat(1)
         character_value >> str(',') >> sym_list_continue }
 
       rule(:date_value) {
-        v_iso8601_extended_date }
+        v_iso8601_extended_date >> spaces? }
 
       rule(:date_list_value) {
         date_value >> (str(',') >> date_value).repeat(1) |
         date_value >> str(',') >> sym_list_continue }
 
+      rule(:date_interval_value) {
+        sym_interval_delim >> date_value >> sym_ellipsis >> date_value >> sym_interval_delim |
+        sym_interval_delim >> sym_gt >> date_value >> sym_ellipsis >> date_value >> sym_interval_delim |
+        sym_interval_delim >> date_value >> sym_ellipsis >> sym_lt >> date_value >> sym_interval_delim |
+        sym_interval_delim >> sym_gt >> date_value >> sym_ellipsis >> sym_lt >> date_value >> sym_interval_delim |
+        sym_interval_delim >> sym_lt >> date_value >> sym_interval_delim |
+        sym_interval_delim >> sym_le >> date_value >> sym_interval_delim |
+        sym_interval_delim >> sym_gt >> date_value >> sym_interval_delim |
+        sym_interval_delim >> sym_ge >> date_value >> sym_interval_delim |
+        sym_interval_delim >> date_value >> sym_interval_delim }
+
+      rule(:time_value) {
+        v_iso8601_extended_time >> spaces? }
+
+      rule(:time_list_value) {
+        time_value >> (str(',') >> time_value).repeat(1) |
+        time_value >> str(',') >> sym_list_continue }
+
+      rule(:time_interval_value) {
+        sym_interval_delim >> time_value >> sym_ellipsis >> time_value >> sym_interval_delim |
+        sym_interval_delim >> sym_gt >> time_value >> sym_ellipsis >> time_value >> sym_interval_delim |
+        sym_interval_delim >> time_value >> sym_ellipsis >> sym_lt >> time_value >> sym_interval_delim |
+        sym_interval_delim >> sym_gt >> time_value >> sym_ellipsis >> sym_lt >> time_value >> sym_interval_delim |
+        sym_interval_delim >> sym_lt >> time_value >> sym_interval_delim |
+        sym_interval_delim >> sym_le >> time_value >> sym_interval_delim |
+        sym_interval_delim >> sym_gt >> time_value >> sym_interval_delim |
+        sym_interval_delim >> sym_ge >> time_value >> sym_interval_delim |
+        sym_interval_delim >> time_value >> sym_interval_delim }
+
+      rule(:date_time_value) {
+        v_iso8601_extended_date_time >> spaces?}
+
+      rule(:date_time_list_value) {
+        date_time_value >> (str(',') >> date_time_value).repeat(1) |
+        date_time_value >> str(',') >> sym_list_continue }
+
+      rule(:date_time_interval_value) {
+        sym_interval_delim >> date_time_value >> sym_ellipsis >> date_time_value >> sym_interval_delim |
+        sym_interval_delim >> sym_gt >> date_time_value >> sym_ellipsis >> date_time_value >> sym_interval_delim |
+        sym_interval_delim >> date_time_value >> sym_ellipsis >> sym_lt >> date_time_value >> sym_interval_delim |
+        sym_interval_delim >> sym_gt >> date_time_value >> sym_ellipsis >> sym_lt >> date_time_value >> sym_interval_delim |
+        sym_interval_delim >> sym_lt >> date_time_value >> sym_interval_delim |
+        sym_interval_delim >> sym_le >> date_time_value >> sym_interval_delim |
+        sym_interval_delim >> sym_gt >> date_time_value >> sym_interval_delim |
+        sym_interval_delim >> sym_ge >> date_time_value >> sym_interval_delim |
+        sym_interval_delim >> date_time_value >> sym_interval_delim }
+
+      rule(:duration_value) {
+        v_iso8601_duration >> spaces? }
+
+      rule(:duration_list_value){
+        duration_value >> (str(',') >> duration_value).repeat(1) |
+        duration_value >> str(',') >> sym_list_continue }
+
+      rule(:duration_interval_value){
+        sym_interval_delim >> duration_value >> sym_ellipsis >> duration_value >> sym_interval_delim |
+        sym_interval_delim >> sym_gt >> duration_value >> sym_ellipsis >> duration_value >> sym_interval_delim |
+        sym_interval_delim >> duration_value >> sym_ellipsis >> sym_lt >> duration_value >> sym_interval_delim |
+        sym_interval_delim >> sym_gt >> duration_value >> sym_ellipsis >> sym_lt >> duration_value >> sym_interval_delim |
+        sym_interval_delim >> sym_lt >> duration_value >> sym_interval_delim |
+        sym_interval_delim >> sym_le >> duration_value >> sym_interval_delim |
+        sym_interval_delim >> sym_gt >> duration_value >> sym_interval_delim |
+        sym_interval_delim >> sym_ge >> duration_value >> sym_interval_delim |
+        sym_interval_delim >> duration_value >> sym_interval_delim }
+
+      rule(:term_code) {
+        v_qualified_term_code_ref |
+        err_v_qualified_term_code_ref }
+
+      rule(:term_code_list_value) {
+        term_code >> (str(',') >> term_code).repeat(1) |
+        term_code >> sym_list_continue }
 
       rule(:uri_value) {
-        v_uri }
+        v_uri >> spaces? }
 
       rule(:object_reference_block) {
         sym_start_dblock >> absolute_path_object_value >> sym_end_dblock }
@@ -406,6 +490,9 @@ module OpenEHR
       rule(:sym_end_dblock) {
         str('>') >> spaces? }
 
+      rule(:sym_interval_delim) {
+        str('|') >> spaces? }
+
       rule(:sym_eq) {
         str('=') >> spaces? }
 
@@ -481,7 +568,7 @@ module OpenEHR
          match('[0-6]') >> match('[0-9]') >> str(':') >>
          (str('Z') | (match('[+-]') >> match('[0-9]').repeat(4,4))).maybe) }
 
-      rule(:v_iso8601_extendate_date) {
+      rule(:v_iso8601_extended_date) {
         (match('[0-9]').repeat(4, 4) >> str('-') >>
          match('[0-1]') >> match('[0-9]') >> str('-') >>
          match('[0-3]') >> match('[0-9]')) |
@@ -537,12 +624,8 @@ module OpenEHR
       rule(:v_string) {
         str('"') >> (str('\"')| match('[^"]')).repeat >> str('"') }
 
-      rule(:v_char) {
+      rule(:v_character) {
         match('[^\\\n\"]') }
-    end
-
-    class ADL15Transformer < ::Parslet::Transform
-      rule(archetype_id: sequence(:archetype_id), adl_version: simple(:adl_version)) { ArchMock.new(adl_version: adl_version, archetype_id: archetype_id)} 
     end
   end
 end
