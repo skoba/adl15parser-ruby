@@ -7,7 +7,7 @@ module OpenEHR
       def parse
         begin
           tree = parslet_engine.parse(filestream.read)
-#p tree
+p tree
           arch_mock = transformer.apply(tree)
 #p arch_mock
           filestream.close
@@ -41,9 +41,10 @@ module OpenEHR
     end
 
     class ADL15Transformer < ::Parslet::Transform
-      rule(term_code: {term_id: simple(:id), code: simple(:c)}) do
-        terminology_id = OpenEHR::RM::Support::Identification::TerminologyID.new(value: id.to_s)
-        OpenEHR::RM::DataTypes::Text::CodePhrase.new(terminology_id: terminology_id, code_string: c.to_s)
+      rule(term_id: simple(:id)) {OpenEHR::RM::Support::Identification::TerminologyID.new(value: id.to_s)}
+
+      rule(term_code: {terminology_id: simple(:id), code: simple(:c)}) do
+        OpenEHR::RM::DataTypes::Text::CodePhrase.new(terminology_id: id, code_string: c.to_s)
       end
 
       rule(archetype_id: simple(:archetypeid),
@@ -534,7 +535,7 @@ module OpenEHR
         match('[^<>|\\{}^~"\[\])]').repeat >> spaces? }
 
       rule(:v_qualified_term_code_ref) {
-        str('[') >> namechar_paren.repeat(1).as(:term_id) >>
+        str('[') >> namechar_paren.repeat(1).as(:term_id).as(:terminology_id) >>
         str('::') >> namechar.repeat(1).as(:code) >> str(']') >> spaces? }
 
       rule(:err_v_qualified_term_code_ref) {
