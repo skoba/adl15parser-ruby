@@ -10,7 +10,6 @@ module OpenEHR
           arch_mock = transformer.apply(tree)
           filestream.close
         rescue Parslet::ParseFailed => e
-#          puts e.error_tree
           puts e.cause.ascii_tree
         end        
         arch_mock
@@ -30,18 +29,27 @@ module OpenEHR
     end
 
     class ArchMock
-      attr_accessor :adl_version, :archetype_id
+      attr_accessor :adl_version, :archetype_id, :language
 
       def initialize(attribute = {})
         @adl_version = attribute[:adl_version]
         @archetype_id = attribute[:archetype_id]
+        @language = attribute[:language]
       end
     end
 
     class ADL15Transformer < ::Parslet::Transform
+
+      # rule(term_id: simple(:id)) { OpenEHR::EHR::Support::Identification::TerminologyID.new(value: :id)}
+
+      # rule(term_code: {terminology_id: simple(:term_id), code_string: simple(:code)}) {OpenEHR::RM::DataTypes::Text::CodePhrase.new(terminology_id: :terminology_id, code_string: :code_string)}
+
       rule(archetype_id: simple(:archetype_id),
-           adl_version: simple(:adl_version)) {
-        ArchMock.new(adl_version: adl_version, archetype_id: archetype_id) }
+           adl_version: simple(:adl_version), term_code: {term_id: simple(:term_id), code: simple(:code)}) do
+        terminology_id = OpenEHR::RM::Support::Identification::TerminologyID.new(value: term_id.to_s)
+        language = OpenEHR::RM::DataTypes::Text::CodePhrase.new(terminology_id: terminology_id, code_string: code.to_s)
+        ArchMock.new(adl_version: adl_version.to_s, archetype_id: archetype_id.to_s, language: language)
+      end
     end
 
     class ADL15Parslet < ::Parslet::Parser
@@ -356,7 +364,7 @@ module OpenEHR
         sym_interval_delim >> duration_value >> sym_interval_delim }
 
       rule(:term_code) {
-        v_qualified_term_code_ref |
+        v_qualified_term_code_ref.as(:term_code) |
         err_v_qualified_term_code_ref }
 
       rule(:term_code_list_value) {
@@ -526,8 +534,8 @@ module OpenEHR
         match('[^<>|\\{}^~"\[\])]').repeat >> spaces? }
 
       rule(:v_qualified_term_code_ref) {
-        str('[') >> namechar_paren.repeat(1) >>
-        str('::') >> namechar.repeat(1) >> str(']') >> spaces? }
+        str('[') >> namechar_paren.repeat(1).as(:term_id) >>
+        str('::') >> namechar.repeat(1).as(:code) >> str(']') >> spaces? }
 
       rule(:err_v_qualified_term_code_ref) {
         str('[') >> namechar_paren.repeat(1) >>

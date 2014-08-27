@@ -20,5 +20,14 @@ describe OpenEHR::Parser::ADL15Parser do
     it 'archetype_id is openEHR-DEMOGRAPHIC-ADDRESS.minimal.v1' do
       expect(archetype.archetype_id).to eq 'openEHR-DEMOGRAPHIC-ADDRESS.minimal.v1'
     end
+
+    it 'language is en' do
+      expect(archetype.language.code_string).to eq 'en'
+    end
+
+    it 'terminology id is ISO_639-1' do
+      expect(archetype.language.terminology_id.value).to eq 'ISO_639-1'
+    end
+    
   end
 end
