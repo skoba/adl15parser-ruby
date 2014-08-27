@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/skoba/adl15parser-ruby.svg?branch=master)](https://travis-ci.org/skoba/adl15parser-ruby)
 adl15parser-ruby
 ================
 
