@@ -7,7 +7,9 @@ module OpenEHR
       def parse
         begin
           tree = parslet_engine.parse(filestream.read)
+#p tree
           arch_mock = transformer.apply(tree)
+#p arch_mock
           filestream.close
         rescue Parslet::ParseFailed => e
           puts e.cause.ascii_tree
@@ -39,17 +41,15 @@ module OpenEHR
     end
 
     class ADL15Transformer < ::Parslet::Transform
-
-      # rule(term_id: simple(:id)) { OpenEHR::EHR::Support::Identification::TerminologyID.new(value: :id)}
-
-      # rule(term_code: {terminology_id: simple(:term_id), code_string: simple(:code)}) {OpenEHR::RM::DataTypes::Text::CodePhrase.new(terminology_id: :terminology_id, code_string: :code_string)}
-
-      rule(archetype_id: simple(:archetype_id),
-           adl_version: simple(:adl_version), term_code: {term_id: simple(:term_id), code: simple(:code)}) do
-        terminology_id = OpenEHR::RM::Support::Identification::TerminologyID.new(value: term_id.to_s)
-        language = OpenEHR::RM::DataTypes::Text::CodePhrase.new(terminology_id: terminology_id, code_string: code.to_s)
-        ArchMock.new(adl_version: adl_version.to_s, archetype_id: archetype_id.to_s, language: language)
+      rule(term_code: {term_id: simple(:id), code: simple(:c)}) do
+        terminology_id = OpenEHR::RM::Support::Identification::TerminologyID.new(value: id.to_s)
+        OpenEHR::RM::DataTypes::Text::CodePhrase.new(terminology_id: terminology_id, code_string: c.to_s)
       end
+
+      rule(archetype_id: simple(:archetypeid),
+           adl_version: simple(:adlversion),
+           language: subtree(:language)) {
+        ArchMock.new(adl_version: adlversion.to_s, archetype_id: archetypeid.to_s, language: language) }
     end
 
     class ADL15Parslet < ::Parslet::Parser
@@ -104,7 +104,7 @@ module OpenEHR
         sym_specialize >> v_archetype_id }
 
       rule(:arch_language) {
-        sym_language >> v_odin_text }
+        sym_language >> v_odin_text.as(:language) }
 
       rule(:arch_description) {
         sym_description >> v_odin_text }
