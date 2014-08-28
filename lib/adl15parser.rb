@@ -69,12 +69,12 @@ p tree
         archetype_marker >>
           arch_meta_data >>
           archetype_id >> 
-          arch_language >> any.repeat #>>
-          # arch_description >>
-          # arch_definition >>
-          # arch_rules >>
-          # arch_terminology >>
-          # arch_annotations
+          arch_language >> 
+          arch_description >> 
+          arch_definition >>
+          arch_rules >>
+          arch_terminology >>
+          arch_annotations
       end
 
       rule(:archetype_marker) {
@@ -108,7 +108,7 @@ p tree
         sym_language >> v_odin_text.as(:language) }
 
       rule(:arch_description) {
-        sym_description >> v_odin_text }
+        sym_description >> v_odin_text.as(:description) }
 
       rule(:arch_definition) {
         sym_definition >> v_odin_text }
@@ -145,27 +145,28 @@ p tree
         (sym_start_dblock >> sym_end_dblock)}
 
       rule(:complex_object_block) {
-        single_attr_object_block |
-        container_attr_object_block }
+        container_attr_object_block |
+        single_attr_object_block }
 
       rule(:container_attr_object_block) {
-        untyped_container_attr_object_block |
-        (type_identifier >> untyped_container_attr_object_block) }
+        (type_identifier >> spaces?).maybe >>
+        untyped_container_attr_object_block }
 
       rule(:untyped_container_attr_object_block) {
-        container_attr_object_block_head >> keyed_objects >> sym_end_dblock }
+        container_attr_object_block_head >>
+        keyed_objects >> sym_end_dblock }
 
       rule(:container_attr_object_block_head) {
-        sym_start_dblock >> spaces? }
+        sym_start_dblock }
 
       rule(:keyed_objects) {
         keyed_object.repeat }
 
       rule(:keyed_object) {
-        object_key >> sym_eq >> object_block }
+        object_key >> sym_eq >> object_block >> spaces? }
 
       rule(:object_key) {
-        str('[') >> primitive_value >> str(']')}
+        str('[') >> primitive_value >> str(']') >> spaces? }
 
       rule(:single_attr_object_block) {
         untyped_single_attr_object_block |
@@ -178,17 +179,16 @@ p tree
         sym_start_dblock }
 
       rule(:primitive_object_block) {
-        untyped_primitive_object_block |
-        (type_identifier >> untyped_primitive_object_block) }
+        type_identifier.maybe >> untyped_primitive_object_block }
 
-     rule(:untyped_primitive_object_block) {
+      rule(:untyped_primitive_object_block) {
         sym_start_dblock >> primitive_object >> sym_end_dblock }
 
       rule(:primitive_object) {
         term_code_list_value |
         term_code |
-        primitive_interval_value |
         primitive_list_value |
+        primitive_interval_value |
         primitive_value }
 
       rule(:primitive_value) {
