@@ -1,13 +1,20 @@
 require 'openehr'
 require 'parslet'
+require 'parslet/convenience'
 
 module OpenEHR
   module Parser
     class ADL15Parser < OpenEHR::Parser::Base
       def parse
+        if File.exist? @filename
+          context = filestream.read
+        else
+          context = @filename
+        end
+
         begin
-          tree = parslet_engine.parse(filestream.read)
-p tree
+          tree = parslet_engine.parse_with_debug(context)
+#p tree
           arch_mock = transformer.apply(tree)
 #p arch_mock
           filestream.close
@@ -70,7 +77,7 @@ p tree
           arch_meta_data >>
           archetype_id >> 
           arch_language >> 
-          arch_description >> 
+          arch_description >>
           arch_definition >>
           arch_rules >>
           arch_terminology >>
@@ -81,14 +88,14 @@ p tree
         sym_archetype }
 
       rule(:archetype_id) {
-        v_archetype_id.as(:archetype_id) >> spaces?}
+        v_archetype_id.as(:archetype_id) >> spaces }
 
       rule(:arch_meta_data) {
         str('-/-') |
-        str('(') >> arch_meta_data_items >> str(')') >> spaces? }
+        str('(') >> arch_meta_data_items >> str(')') >> spaces }
 
       rule(:arch_meta_data_items) {
-        arch_meta_data_item >> (str(';') >> arch_meta_data_item).repeat }
+        arch_meta_data_item >> (str(';') >> spaces.maybe >> arch_meta_data_item).repeat }
 
       rule(:arch_meta_data_item) {
         sym_adl_version >> sym_eq >> v_dotted_numeric.as(:adl_version) |
@@ -111,46 +118,57 @@ p tree
         sym_description >> v_odin_text.as(:description) }
 
       rule(:arch_definition) {
-        sym_definition >> v_odin_text }
+        sym_definition >> v_cadl_text }
 
       rule(:arch_rules) {
-        str('-/-') |
+#        str('-/-') |
         sym_rules >> v_rules_text }
 
       rule(:arch_terminology) {
         sym_terminology >> v_odin_text }
 
       rule(:arch_annotations) {
-        str('-/-') |
+#        str('-/-') |
         sym_annotations >> v_odin_text }
+
+      # cADL
+      rule(:v_cadl_text) {
+        c_complex_object }
+
+      rule(:c_complex_object) {
+        c_complex_object_head >>
+        sym_matches >>
+        sym_start_cblock }
 
       # ODIN
       rule(:v_odin_text) {
-        attr_vals |
-        complex_object_block }
+        attr_vals.as(:attr_vals) |
+        complex_object_block.as(:complex_object) }
 
       rule(:attr_vals) {
-        attr_val >> (str(';').maybe >> spaces >> attr_val).repeat}
+        attr_val >> (str(';').maybe >> spaces >>
+                     attr_val).repeat }
 
       rule(:attr_val) {
-        attr_id >> sym_eq >> object_block >> spaces? }
+        attr_id.as(:id) >> sym_eq >>
+        object_block.as(:value) }
 
       rule(:attr_id) {
-        v_attribute_identifier >> spaces? }
+        v_attribute_identifier.as(:value) >> spaces }
 
       rule(:object_block) {
         complex_object_block |
         primitive_object_block |
         object_reference_block |
-        (sym_start_dblock >> sym_end_dblock)}
+        sym_start_dblock >> sym_end_dblock }
 
       rule(:complex_object_block) {
-        container_attr_object_block |
-        single_attr_object_block }
+        single_attr_object_block.as(:single_attr) |
+        container_attr_object_block.as(:container_attr) }
 
       rule(:container_attr_object_block) {
-        (type_identifier >> spaces?).maybe >>
-        untyped_container_attr_object_block }
+        type_identifier.maybe >>
+        untyped_container_attr_object_block.as(:container) }
 
       rule(:untyped_container_attr_object_block) {
         container_attr_object_block_head >>
@@ -160,20 +178,22 @@ p tree
         sym_start_dblock }
 
       rule(:keyed_objects) {
-        keyed_object.repeat }
+        (keyed_object.as(:keyed_object)).repeat(1) }
 
       rule(:keyed_object) {
-        object_key >> sym_eq >> object_block >> spaces? }
+        object_key.as(:key) >> sym_eq >>
+        object_block.as(:value) }
 
       rule(:object_key) {
-        str('[') >> primitive_value >> str(']') >> spaces? }
+        str('[') >> primitive_value.as(:value) >> str(']') >> spaces }
 
       rule(:single_attr_object_block) {
-        untyped_single_attr_object_block |
-        type_identifier.maybe >> untyped_single_attr_object_block }
+        type_identifier.maybe >>
+        untyped_single_attr_object_block.as(:attr_object) }
 
       rule(:untyped_single_attr_object_block) {
-        single_attr_object_complex_head >> attr_vals >> sym_end_dblock }
+        single_attr_object_complex_head >>
+        attr_vals.as(:attr_vals) >> sym_end_dblock }
 
       rule(:single_attr_object_complex_head) {
         sym_start_dblock }
@@ -181,8 +201,11 @@ p tree
       rule(:primitive_object_block) {
         type_identifier.maybe >> untyped_primitive_object_block }
 
-      rule(:untyped_primitive_object_block) {
-        sym_start_dblock >> primitive_object >> sym_end_dblock }
+      rule(:untyped_primitive_object_block) do
+        sym_start_dblock >>
+          primitive_object >> spaces >>
+          sym_end_dblock
+      end
 
       rule(:primitive_object) {
         term_code_list_value |
@@ -224,10 +247,11 @@ p tree
         integer_interval_value }
       
       rule(:type_identifier) {
-        str('(') >> v_type_identifier >> str(')') |
-        str('(') >> v_generic_type_identifier >> str(')') |
-        v_type_identifier |
-        v_generic_type_identifier }
+        (str('(') >> v_type_identifier >> str(')') |
+         str('(') >> v_generic_type_identifier >> str(')') |
+         v_type_identifier |
+         v_generic_type_identifier) >>
+        spaces }
 
       rule(:string_value) {
         v_string }
@@ -286,14 +310,14 @@ p tree
         boolean_value >> str(',') >> sym_list_continue }
 
       rule(:character_value) {
-        v_character >> spaces? }
+        v_character >> spaces }
 
       rule(:character_list_value) {
         character_value >> (str(',') >> character_value).repeat(1)
         character_value >> str(',') >> sym_list_continue }
 
       rule(:date_value) {
-        v_iso8601_extended_date >> spaces? }
+        v_iso8601_extended_date >> spaces }
 
       rule(:date_list_value) {
         date_value >> (str(',') >> date_value).repeat(1) |
@@ -311,7 +335,7 @@ p tree
         sym_interval_delim >> date_value >> sym_interval_delim }
 
       rule(:time_value) {
-        v_iso8601_extended_time >> spaces? }
+        v_iso8601_extended_time >> spaces }
 
       rule(:time_list_value) {
         time_value >> (str(',') >> time_value).repeat(1) |
@@ -329,7 +353,7 @@ p tree
         sym_interval_delim >> time_value >> sym_interval_delim }
 
       rule(:date_time_value) {
-        v_iso8601_extended_date_time >> spaces?}
+        v_iso8601_extended_date_time >> spaces }
 
       rule(:date_time_list_value) {
         date_time_value >> (str(',') >> date_time_value).repeat(1) |
@@ -347,7 +371,7 @@ p tree
         sym_interval_delim >> date_time_value >> sym_interval_delim }
 
       rule(:duration_value) {
-        v_iso8601_duration >> spaces? }
+        v_iso8601_duration >> spaces }
 
       rule(:duration_list_value){
         duration_value >> (str(',') >> duration_value).repeat(1) |
@@ -373,15 +397,15 @@ p tree
         term_code >> sym_list_continue }
 
       rule(:uri_value) {
-        v_uri >> spaces? }
+        v_uri >> spaces }
 
       rule(:object_reference_block) {
         sym_start_dblock >> absolute_path_object_value >> sym_end_dblock }
 
       # Path
       rule(:absolute_path_object_value) {
-        absolute_path |
-        absolute_path_list }
+        absolute_path_list |
+        absolute_path }
 
       rule(:absolute_path_list) {
         absolute_path >> (str('.') >> absolute_path).repeat(1) |
@@ -394,8 +418,8 @@ p tree
         path_segment >> (str('/') >> path_segment).repeat }
 
       rule(:path_segment) {
-        v_attribute_identifier >> str('[') >> v_string >> str(']') |
-        v_attribute_identifier }
+        v_attribute_identifier >>
+        (str('[') >> v_string >> str(']')).maybe }
  
       # Definitions
       rule(:alphanum) {
@@ -431,39 +455,38 @@ p tree
       rule(:v_dotted_numeric) {
         number >> str('.') >> number >> (str('.') >> number).maybe}
 
-      rule(:space) { match '\\s' }
+      rule(:space) { match '\s' }
 
       # rule(:space?) { space.maybe? }
 
-      rule(:spaces) { space.repeat }
+      rule(:spaces) { (space | comment).repeat }
+
+      rule(:newline) { str("\r").maybe >> str("\n")  }
 
       rule(:comment) {
-        str('--') >> any.repeat >> match("\\n") }
-
-      rule(:spaces?) {
-        spaces >> comment.maybe >> spaces }
+        str('--') >> (newline.absent? >> any).repeat }
 
       # Symbols
       rule(:sym_archetype) {
-        stri('archetype') >> spaces? }
+        stri('archetype') >> spaces }
 
       rule(:sym_template) {
-        stri('template') >> spaces? }
+        stri('template') >> spaces }
 
       rule(:sym_template_overlay) {
-        stri('template_overlay') >> spaces? }
+        stri('template_overlay') >> spaces }
 
       rule(:sym_operational_template) {
-        stri('operational_template') >> spaces? }
+        stri('operational_template') >> spaces }
 
       rule(:sym_adl_version) {
-        stri('adl_version') >> spaces? }
+        stri('adl_version') >> spaces }
 
       rule(:sym_is_controlled) {
-        stri('controlled') >> spaces? }
+        stri('controlled') >> spaces }
 
       rule(:sym_is_generated) {
-        stri('generated') >> spaces? }
+        stri('generated') >> spaces }
 
       rule(:sym_specialize) {
         (stri('specialised') | stri('specialized')) >> spaces? }
@@ -472,13 +495,13 @@ p tree
         stri('concept') >> spaces? }
 
       rule(:sym_definition) {
-        stri('definition') >> spaces? }
+        stri('definition') >> spaces }
 
       rule(:sym_language) {
-        stri('language') >> spaces? }
+        stri('language') >> spaces }
 
       rule(:sym_description){
-        stri('description') >> spaces? }
+        stri('description') >> spaces }
 
       rule(:sym_invariant) {
         stri('invariant') >> spaces? }
@@ -487,25 +510,25 @@ p tree
         stri('terminology') >> spaces? }
 
       rule(:sym_annotations) {
-        stri('annotations') >> spaces? }
+        stri('annotations') >> spaces }
 
       rule(:sym_component_terminologies) {
         stri('component_terminologies') >> spaces? }
 
       rule(:sym_uid) {
-        stri('uid') >> spaces? }
+        stri('uid') >> spaces }
 
       rule(:sym_start_dblock) {
-        str('<') >> spaces? }
+        str('<') >> spaces }
 
       rule(:sym_end_dblock) {
-        str('>') >> spaces? }
+        str('>') >> spaces }
 
       rule(:sym_interval_delim) {
-        str('|') >> spaces? }
+        str('|') >> spaces }
 
       rule(:sym_eq) {
-        str('=') >> spaces? }
+        str('=') >> spaces }
 
       rule(:sym_ge) {
         str('>=') >> spaces? }
@@ -521,29 +544,29 @@ p tree
         str('..') >> spaces? }
 
       rule(:sym_list_continue) {
-        str('...') >> spaces? }
+        str('...') >> spaces }
 
       rule(:sym_true) {
-        stri('true') >> spaces? }
+        stri('true') >> spaces }
 
       rule(:sym_false) {
-        stri('false') >> spaces? }
+        stri('false') >> spaces }
 
       # valued strings
       rule(:v_uri) {
-        match('[a-z]').repeat(1) >> str('://') >>
-        match('[^<>|\\{}^~"\[\])]').repeat >> spaces? }
+        (match('[a-z]').repeat(1) >> str('://') >>
+        match('[^<>|\\{}^~"\[\])]').repeat).as(:uri) >> spaces }
 
       rule(:v_qualified_term_code_ref) {
         str('[') >> namechar_paren.repeat(1).as(:term_id).as(:terminology_id) >>
-        str('::') >> namechar.repeat(1).as(:code) >> str(']') >> spaces? }
+        str('::') >> namechar.repeat(1).as(:code) >> str(']') >> spaces }
 
       rule(:err_v_qualified_term_code_ref) {
         str('[') >> namechar_paren.repeat(1) >>
-        str('::') >> namechar_space.repeat(1)>> str(']') >> spaces? }
+        str('::') >> namechar_space.repeat(1)>> str(']') >> spaces }
 
       rule(:v_local_term_code_ref) {
-        str('[') >> str('a') >> (str('c') | str('t')) >> match('[0-9.]').repeat(1) >> str(']') >> spaces? }
+        str('[') >> (str('a') >> (str('c') | str('t')) >> match('[0-9.]').repeat(1)).as(:local_term_code) >> str(']') >> spaces? }
 
       rule(:err_v_local_term_code_ref) {
         str('[') >> alphanum >> match('[^\]]').repeat(1) >> str(']') >> spaces? }
@@ -620,7 +643,7 @@ p tree
         namestr }
 
       rule(:v_value) {
-        value_str }
+        value_str.as(:value) }
 
       rule(:v_integer) {
         match('[0-9]').repeat(1) |
@@ -632,8 +655,14 @@ p tree
         (match('[0-9]').repeat(1) >> str('.') >> match('[0-9]').repeat(1) >>
          stri('e') >> match('[+-]').maybe >> match([0-9]).repeat(1)) }
 
-      rule(:v_string) {
-        str('"') >> (str('\"')| match('[^"]')).repeat >> str('"') }
+      rule(:v_string) do
+        str('"') >>
+        (
+         (str('\\') >> any) |
+         (str('"').absent? >> any)
+         ).repeat.as(:string) >>
+          str('"')
+      end
 
       rule(:v_character) {
         match('[^\\\n\"]') }
