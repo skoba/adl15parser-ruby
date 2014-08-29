@@ -14,6 +14,7 @@ DOC
 
 describe 'archetype meta data' do
   let(:parser) {OpenEHR::Parser::ADL15Parslet.new }
+
   context 'minimum_meta_data' do
     it 'parse minimum meta data' do
       expect(parser.arch_meta_data).to parse MINIMUM_META_DATA

@@ -637,7 +637,16 @@ module OpenEHR
         match('[_a-z]') >> idchar.repeat }      
 
       rule(:v_archetype_id) {
-        ((namestr >> (str('.') >> alphanum_str).repeat >> str('::')).maybe >> namestr >> str('-') >> alphanum_str >> str('-') >> namestr >> str('.') >> namestr >> (str('-') >> alphanum_str).repeat >> str('.v') >> match('[0-9]').repeat(1) >> ((str('.') >> match([0-9]).repeat(1)).repeat(0,2) >> (str('-rc') | str('+') | str('+') >> match([0-9]).repeat(1)).maybe).maybe) }
+        ((namestr >> (str('.') >> alphanum_str).repeat >>
+          str('::')).maybe >>
+         namestr >> str('-') >>
+         alphanum_str >> str('-') >>
+         namestr >> str('.') >>
+         namestr >>
+         (str('-') >> alphanum_str).repeat >>
+         str('.v') >> match('[0-9]').repeat(1) >>
+         ((str('.') >> match('[0-9]').repeat(1)).repeat(0,2) >>
+          ((str('-rc') | str('+u') | str('+')) >> match('[0-9]').repeat(1)).maybe).maybe) }
 
       rule(:v_identifier) {
         namestr }
