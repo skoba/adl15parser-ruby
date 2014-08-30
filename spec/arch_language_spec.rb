@@ -9,8 +9,7 @@ describe 'arch_language parser' do
 
   it 'parse with multiple translations' do
     expect(parser).to parse WITH_TRANSLATIONS
-  end
-  
+  end  
 end
 
 
@@ -20,6 +19,7 @@ language
 DOC
 
 WITH_TRANSLATIONS =<<DOC
+language
 	original_language = <[ISO_639-1::en]>
 	translations = <
 		["de"] = <

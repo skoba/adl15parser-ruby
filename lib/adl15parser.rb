@@ -257,8 +257,8 @@ module OpenEHR
         v_string }
 
       rule(:string_list_value) {
-        v_string >> (str(',') >> v_string).repeat(1) >>
-        (str(',') >> sym_list_continue).maybe |
+        v_string >> (spaces >> str(',') >> spaces >> v_string).repeat(1) >>
+        (str(',') >> spaces >> sym_list_continue).maybe |
         v_string >> sym_list_continue }
 
       rule(:integer_value) {
