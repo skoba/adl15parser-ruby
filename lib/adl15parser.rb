@@ -135,10 +135,88 @@ module OpenEHR
       rule(:v_cadl_text) {
         c_complex_object }
 
-      rule(:c_complex_object) {
+      rule(:c_complex_object) do
         c_complex_object_head >>
-        sym_matches >>
-        sym_start_cblock }
+          sym_matches >>
+          sym_start_cblock >>
+          c_complex_object_body >>
+          sym_end_cblock
+      end
+
+      rule(:c_complex_object_head) {
+        c_complex_object_id >> c_occurrences }
+
+      rule(:c_complex_object_id) {
+        type_identifier >> v_root_id_code |
+        type_identifier >> v_id_code |
+        sibling_order >> type_identifier >> v_id_code }
+
+      rule(:sibling_order) {
+        sym_after >> v_id_code |
+        sym_before >> v_id_code }
+
+      rule(:c_complex_object_body) {
+        c_any |
+        c_attributes }
+
+      rule(:c_object) do
+        c_complex_object |
+          c_complex_object_proxy|
+          archetype_slot |
+          c_primitive_object
+      end
+
+      rule(:archetype_root) {
+        sym_use_archtype >> type_identifier >> v_id_code >> c_occcurrences >> v_archetype_id }
+
+      rule(:c_complex_object_proxy) {
+        sym_use_node >> type_identifier >> v_id_code >> c_occcurrences >> absolute_path }
+
+      rule(:archetype_slot) {
+        c_archetype_slot_head >> v_id_code >> occurrences >> v_archetype_id |
+        c_archetype_slot_head }
+
+      rule(:c_archetype_slot_id) {
+        c_archetype_slot_id >> c_occcurrences }
+
+      rule(:c_archetype_slot_id) {
+        sym_allow_archetype >> type_identifier >> v_icd_code |
+        sibling_order >> sym_allow_archetype >> type_identifier >> v_id_code |
+        sym_allow_archetype >> type_identifier >> v_id_code >> sym_closed }
+
+      rule(:c_primitive_object) {
+        c_primitive }
+
+      rule(:c_primitive) {
+        c_terminology_code |
+        c_boolean |
+        c_duration |
+        c_date_time |
+        c_time |
+        c_date |
+        c_real |
+        c_integer |
+        c_string }
+
+      rule(:c_any) { str '*' }
+
+      rule(:c_attribute_defs) {
+        c_attribute_def.repeat(1) }
+
+      rule(:c_attribute_def) {
+        c_attributes_tuple |
+        c_attribute }
+
+      rule(:c_attribute) {
+        c_attr_head >> sym_matches >> sym_start_cblock >> c_attr_values >> sym_end_cblock }
+
+      rule(:c_attr_head) {
+        v_attribute_identifier >> c_existence >> c_cardinality |
+        v_abs_path >> c_existence >> c_cardinality }
+
+      rule(:c_occurrences) {
+        str('-/-') |
+        sym_occurrences >> sym_matches >> sym_start_cblock >> occurrence_spec >> sym_end_cblock }
 
       # ODIN
       rule(:v_odin_text) {
@@ -257,7 +335,7 @@ module OpenEHR
         v_string }
 
       rule(:string_list_value) {
-        v_string >> (spaces >> str(',') >> spaces >> v_string).repeat(1) >>
+        v_string >> (str(',') >> spaces >> v_string).repeat(1) >>
         (str(',') >> spaces >> sym_list_continue).maybe |
         v_string >> sym_list_continue }
 
@@ -338,7 +416,7 @@ module OpenEHR
         v_iso8601_extended_time >> spaces }
 
       rule(:time_list_value) {
-        time_value >> (str(',') >> time_value).repeat(1) |
+        time_value >>(str(',') >> time_value).repeat(1) |
         time_value >> str(',') >> sym_list_continue }
 
       rule(:time_interval_value) {
@@ -446,9 +524,11 @@ module OpenEHR
       rule(:namestr) {
         match("[a-zA-Z]") >> match('[a-zA-Z0-9_]').repeat(1) }
 
-      #rule(:id_code_leader)
+      rule(:id_code_leader) {str 'id'}
 
-      rule(:alphanum_str) { match('[a-zA-Z0-9_]').repeat(1) }
+      rule(:code_str) {
+        (str('0') | (match('[1-9]') >> match('[0-9').repeat)) >>
+      (str('.') >> str('0') | (match('[1-9]') >> match('[0-9').repeat)).repeat }
 
       rule(:number) {match '[0-9]'}
 
@@ -552,10 +632,32 @@ module OpenEHR
       rule(:sym_false) {
         stri('false') >> spaces }
 
+# cADL symbols      
+      rule(:sym_start_cblock) {
+        str('{') >> spaces }
+
+      rule(:sym_end_cblock) {
+        str('}') >> spaces}
+
+      rule(:sym_matches) {
+        stri('matches') >> spaces }
+
+      rule(:sym_after) {
+        stri('after') >> spaces }
+
+      rule(:sym_before) {
+        stri('before') >> spaces } 
+
       # valued strings
       rule(:v_uri) {
         (match('[a-z]').repeat(1) >> str('://') >>
         match('[^<>|\\{}^~"\[\])]').repeat).as(:uri) >> spaces }
+
+      rule(:v_root_id_code) {
+        str('[') >> id_code_leader.repeat(1)>> str('.1').repeat >> str(']')}
+
+      rule(:v_id_code) {
+        str('[') >> id_code_leader >> code_str >> str(']') }
 
       rule(:v_qualified_term_code_ref) {
         str('[') >> namechar_paren.repeat(1).as(:term_id).as(:terminology_id) >>
@@ -670,7 +772,7 @@ module OpenEHR
          (str('\\') >> any) |
          (str('"').absent? >> any)
          ).repeat.as(:string) >>
-          str('"')
+          str('"') >> spaces
       end
 
       rule(:v_character) {
