@@ -654,7 +654,7 @@ module OpenEHR
         match('[^<>|\\{}^~"\[\])]').repeat).as(:uri) >> spaces }
 
       rule(:v_root_id_code) {
-        str('[') >> id_code_leader.repeat(1)>> str('.1').repeat >> str(']')}
+        str('[') >> id_code_leader >> str('1') >> str('.1').repeat >> str(']')}
 
       rule(:v_id_code) {
         str('[') >> id_code_leader >> code_str >> str(']') }
