@@ -74,14 +74,14 @@ module OpenEHR
 
       rule(:archetype) do
         archetype_marker >>
-          arch_meta_data >>
+          arch_meta_data.maybe >>
           archetype_id >> 
           arch_language >> 
           arch_description >>
           arch_definition >>
-#          arch_rules >>
+          arch_rules.maybe >>
           arch_terminology >>
-          arch_annotations
+          arch_annotations.maybe
       end
 
       rule(:archetype_marker) {
@@ -91,7 +91,6 @@ module OpenEHR
         v_archetype_id.as(:archetype_id) >> spaces }
 
       rule(:arch_meta_data) {
-        str('-/-') |
         str('(') >> arch_meta_data_items >> str(')') >> spaces }
 
       rule(:arch_meta_data_items) {
@@ -215,8 +214,8 @@ module OpenEHR
         c_attr_head >> sym_matches >> sym_start_cblock >> c_attr_values >> sym_end_cblock }
 
       rule(:c_attr_head) {
-        v_attribute_identifier >> c_existence >> c_cardinality |
-        v_abs_path >> c_existence >> c_cardinality }
+        v_attribute_identifier >> c_existence.maybe >> c_cardinality.maybe |
+        v_abs_path >> c_existence.maybe >> c_cardinality.maybe }
 
       rule(:c_attr_values) {
         c_object.repeat(1) | c_any }
@@ -236,15 +235,15 @@ module OpenEHR
         sym_start_cblock >> c_primitive_object >> sym_end_cblock >> (str('.') >> spaces >> sym_start_cblock >> c_primitive_object >> sym_end_cblock).repeat }
 
       rule(:c_includes) {
-        str('-/-') |
+#        str('-/-') |
         sym_include >> assertions }
 
       rule(:c_excludes) {
-        str('-/-') |
+#        str('-/-') |
         sym_exclude >> assertions }
 
       rule(:c_existence) {
-        str('-/-') |
+#        str('-/-') |
         sym_existence >> sym_matches >> sym_start_cblock >> existence_spec >> sym_end_cblock }
 
       rule(:existence_spec) {
@@ -252,7 +251,7 @@ module OpenEHR
         v_integer }
 
       rule(:c_cardinality) {
-        str('-/-') |
+#        str('-/-') |
         sym_cardinality >> sym_matches >> sym_start_cblock >> cardinality_range >> sym_end_cblock }
 
       rule(:cardinality_range) {
@@ -266,7 +265,7 @@ module OpenEHR
         occurrence_spec >> str(';') >> spaces >> sym_unique >> str(';') >> spaces >> sym_unordered }
 
       rule(:c_occurrences) {
-        str('-/-') |
+ #       str('-/-') |
         sym_occurrences >> sym_matches >> sym_start_cblock >> occurrence_spec >> sym_end_cblock }
 
       rule(:occurrence_spec) {
@@ -706,8 +705,12 @@ module OpenEHR
 
       rule(:sym_existence) {
         stri('existence') >> spaces }
+
       rule(:sym_occurrences) {
         stri('occurrences') >> spaces }
+
+      rule(:sym_cardinality) {
+        stri('cardinality') >> spaces }
 
       rule(:sym_after) {
         stri('after') >> spaces }
