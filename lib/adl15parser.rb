@@ -124,7 +124,7 @@ module OpenEHR
         sym_rules >> v_rules_text }
 
       rule(:arch_terminology) {
-        sym_terminology >> v_odin_text }
+        (sym_terminology | sym_ontology) >> v_odin_text }
 
       rule(:arch_annotations) {
 #        str('-/-') |
@@ -724,6 +724,9 @@ module OpenEHR
 
       rule(:sym_terminology) {
         stri('terminology') >> spaces }
+
+      rule(:sym_ontology) {
+        stri('ontology') >> spaces}
 
       rule(:sym_rules) {
         stri('rules') >> spaces }

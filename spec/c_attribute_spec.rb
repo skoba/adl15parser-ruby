@@ -4,6 +4,7 @@ describe 'c_attribute grammar' do
   it 'c_attr_head' do
     expect(parser.c_attr_head).to parse C_ATTR_HEAD
   end
+
   it 'c_attribute' do
     expect(parser.c_attribute).to parse C_ATTRIBUTE
   end
