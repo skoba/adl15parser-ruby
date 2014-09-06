@@ -139,12 +139,12 @@ module OpenEHR
          sym_matches >>
          sym_start_cblock >>
          c_complex_object_body >>
-         sym_end_cblock) |
-         c_complex_object_head 
+         sym_end_cblock) #|
+#         c_complex_object_head 
       end
 
       rule(:c_complex_object_head) {
-        c_complex_object_id >> c_occurrences.maybe }
+        c_complex_object_id >> spaces >> c_occurrences.maybe }
 
       rule(:c_complex_object_id) do
         type_identifier >> v_root_id_code |
@@ -170,20 +170,20 @@ module OpenEHR
       end
 
       rule(:c_archetype_root) {
-        sym_use_archtype >> type_identifier >> v_id_code >> c_occcurrences >> v_archetype_id }
+        sym_use_archtype >> type_identifier >> v_id_code >> c_occurrences >> v_archetype_id }
 
       rule(:c_complex_object_proxy) {
-        sym_use_node >> type_identifier >> v_id_code >> c_occcurrences >> absolute_path }
+        sym_use_node >> type_identifier >> v_id_code >> c_occurrences >> absolute_path }
 
       rule(:archetype_slot) {
-        c_archetype_slot_head >> v_id_code >> occurrences >> v_archetype_id |
+        c_archetype_slot_head >> sym_matches >> sym_start_cblock >> c_includes.maybe >> c_excludes.maybe >> sym_end_cblock |
         c_archetype_slot_head }
 
       rule(:c_archetype_slot_head) {
-        c_archetype_slot_id >> c_occcurrences }
+        c_archetype_slot_id >> c_occurrences }
 
       rule(:c_archetype_slot_id) {
-        sym_allow_archetype >> type_identifier >> v_icd_code |
+        sym_allow_archetype >> type_identifier >> v_id_code |
         sibling_order >> sym_allow_archetype >> type_identifier >> v_id_code |
         sym_allow_archetype >> type_identifier >> v_id_code >> sym_closed }
 
@@ -191,7 +191,7 @@ module OpenEHR
         c_primitive }
 
       rule(:c_primitive) {
-        c_terminology_code |
+#        c_terminology_code |
         c_boolean |
         c_duration |
         c_date_time |
@@ -211,7 +211,7 @@ module OpenEHR
         c_attribute }
 
       rule(:c_attribute) {
-        c_attr_head >> sym_matches >> sym_start_cblock >> c_attr_values >> sym_end_cblock }
+        c_attr_head >> spaces >> sym_matches >> sym_start_cblock >> c_attr_values >> sym_end_cblock }
 
       rule(:c_attr_head) {
         v_attribute_identifier >> c_existence.maybe >> c_cardinality.maybe |
@@ -273,6 +273,55 @@ module OpenEHR
         v_integer >> sym_ellipsis >> str('*') |
         str('*') |
         integer_value }
+
+      rule(:c_integer) {
+        integer_interval_value
+        integer_list_value |
+        integer_value >> (str(';') >> spaces >> integer_value).repeat }
+
+      rule(:c_real) {
+        real_interval_value
+        real_list_value |
+        real_value >> (str(';') >> spaces >> real_value).repeat }
+
+      rule(:c_date) {
+        v_iso8601_date_constraint_pattern |
+        date_interval_value |
+        date_value >> (str(';') >> spaces >> date_value).repeat }
+
+      rule(:c_time) {
+        v_iso8601_time_constraint_pattern |
+        time_interval_value |
+        time_value >> (str(';') >> spaces >> time_value).repeat }
+
+      rule(:c_date_time) {
+        v_iso8601_date_time_constraint_pattern |
+        date_time_interval_value |
+        date_time_value >> (str(';') >> spaces >> date_time_value).repeat }
+
+      rule(:c_duration) {
+        v_iso8601_duration_constraint_pattern >> str('/') >> duration_interval_value |
+        v_iso8601_duration_constraint_pattern |
+        duration_interval_value |
+        duration_value >> (str(';') >> spaces >> duration_value).repeat }
+
+      rule(:c_string) {
+#        string_list_value_continue |
+        string_list_value |
+        v_regexp |
+        string_value >> (str(';') >> spaces >> string_value).repeat(1) |
+        v_string }
+
+      rule(:c_boolean) {
+        boolean_value >> (str(';') >> spaces >> boolean_value).repeat(1) |
+        sym_true >> spaces >> str(',') >> spaces >> sym_false |
+        sym_false >> spaces >> str(',') >> spaces >> sym_true |
+        sym_true |
+        sym_false }
+
+      rule(:any_identifier) {
+        type_identifier |
+        v_attribute_identifier }
 
       # ODIN
       rule(:v_odin_text) {
@@ -536,6 +585,35 @@ module OpenEHR
       rule(:object_reference_block) {
         sym_start_dblock >> absolute_path_object_value >> sym_end_dblock }
 
+      # Assertions
+      rule(:v_rules_text) {
+        assetions }
+
+      rule(:assertions) {
+        assertion.repeat(1) }
+
+      rule(:assertion) {
+        any_identifier >> str(':') >> spaces >> boolean_node |
+        boolean_node |
+        str('(') >> boolean_node >> str(')') |
+        arch_outer_constraint_expr }
+
+      rule(:boolean_node) {
+        boolean_leaf |
+        boolean_unop_expr |
+        boolean_binop_expr |
+        arithmetic_relop_expr |
+        boolean_constraint_expr }
+
+      rule(:arch_outer_constraint_expr) {
+        v_rel_path >> sym_matches >> sym_start_cblock >> c_primitive >> sym_end_cblock }
+
+      rule(:boolean_constraint_expr) {
+        v_abs_path >> sym_matches >> sym_start_cblock >> c_primitive >> sym_end_cblock |
+        v_abs_path >> sym_matches >> sym_start_cblock > c_code_phrase >> sym_end_cblock }
+
+      rule(:boolean_unop_expr) {}
+
       # Path
       rule(:absolute_path_object_value) {
         absolute_path_list |
@@ -648,7 +726,7 @@ module OpenEHR
         stri('terminology') >> spaces }
 
       rule(:sym_rules) {
-        stri('rules') >> spaces? }
+        stri('rules') >> spaces }
 
       rule(:sym_annotations) {
         stri('annotations') >> spaces }
@@ -682,7 +760,7 @@ module OpenEHR
       rule(:sym_gt) { sym_end_dblock }
 
       rule(:sym_ellipsis) {
-        str('..') >> spaces? }
+        str('..') >> spaces }
 
       rule(:sym_list_continue) {
         str('...') >> spaces }
@@ -712,11 +790,20 @@ module OpenEHR
       rule(:sym_cardinality) {
         stri('cardinality') >> spaces }
 
+      rule(:sym_use_node) {
+        stri('use_node') >> spaces}
+
+      rule(:sym_allow_archetype) {
+        (stri('allow_archetype') | stri('use_archetype')) >> spaces }
+
       rule(:sym_after) {
         stri('after') >> spaces }
 
       rule(:sym_before) {
         stri('before') >> spaces } 
+
+      rule(:sym_closed) {
+        stri('closed') >> spaces }
 
       # valued strings
       rule(:v_uri) {
@@ -798,6 +885,19 @@ module OpenEHR
         (match('[0-9]').repeat(1) >> stri('W')).maybe >>
         (match('[0-9]').repeat(1) >> stri('D')).maybe) }
 
+      rule(:v_iso8601_date_constraint_pattern) {
+        stri('YYYY') >> str('-') >> match('[mM?X]').repeat(2,2) >> str('-') >> match('[dD?X]').repeat(2,2) }
+
+      rule(:v_iso8601_time_constraint_pattern) {
+        stri('HH') >> str(':') >> match('[mM?X]').repeat(2,2) >> str(':') >> match('[sS?X]').repeat(2,2) }
+
+      rule(:v_iso8601_date_time_constraint_pattern) {
+        stri('YYYY') >> str('-') >> match('[mM?X]').repeat(2,2) >> str('-') >> match('[dD?X]').repeat(2,2)>> match('[T ]') >> stri('HH') >> str(':') >> match('[mM?X]').repeat(2,2) >> str(':') >> match('[sS?X]').repeat(2,2) }
+
+      rule(:v_iso8601_duration_constraint_pattern) {
+        str('P') >> stri('Y').maybe >> stri('M').maybe >> stri('W').maybe >> stri('D').maybe >> str('T') >> stri('H').maybe >> stri('M').maybe >> stri('S').maybe |
+        str('P') >> stri('Y').maybe >> stri('M').maybe >> stri('W').maybe >> stri('D').maybe }
+
       rule(:v_type_identifier) {
         match('[A-Z]') >> idchar.repeat }
 
@@ -845,6 +945,15 @@ module OpenEHR
          (str('"').absent? >> any)
          ).repeat.as(:string) >>
           str('"') >> spaces
+      end
+      
+      rule(:v_regexp) do
+        str('{/') >>
+        (
+         (str('\\') >> any) |
+         (str('/}').absent? >> any)
+         ).repeat.as(:string) >>
+          str('/}') >> spaces
       end
 
       rule(:v_character) {
