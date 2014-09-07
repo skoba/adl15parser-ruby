@@ -139,8 +139,8 @@ module OpenEHR
          sym_matches >>
          sym_start_cblock >>
          c_complex_object_body >>
-         sym_end_cblock) #|
-#         c_complex_object_head 
+         sym_end_cblock) |
+          c_complex_object_head 
       end
 
       rule(:c_complex_object_head) {
