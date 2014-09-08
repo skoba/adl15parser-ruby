@@ -944,10 +944,10 @@ module OpenEHR
       rule(:v_string) do
         str('"') >>
         (
-         (str('\\') >> any) |
+         (str("\\") >> any) |
          (str('"').absent? >> any)
          ).repeat.as(:string) >>
-          str('"') >> spaces
+          str('"')
       end
       
       rule(:v_regexp) do
@@ -955,8 +955,8 @@ module OpenEHR
         (
          (str('\\') >> any) |
          (str('/}').absent? >> any)
-         ).repeat.as(:string) >>
-          str('/}') >> spaces
+         ).repeat.as(:regexp) >>
+          str('/}')
       end
 
       rule(:v_character) {
