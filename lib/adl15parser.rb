@@ -946,7 +946,7 @@ module OpenEHR
         (
          (str("\\") >> any) |
          (str('"').absent? >> any)
-         ).repeat.as(:string) >>
+         ).repeat.as(:value) >>
           str('"')
       end
       
