@@ -951,12 +951,12 @@ module OpenEHR
       end
       
       rule(:v_regexp) do
-        str('{/') >>
+        str('/') >>
         (
          (str('\\') >> any) |
-         (str('/}').absent? >> any)
+         (str('/').absent? >> any)
          ).repeat.as(:regexp) >>
-          str('/}')
+          str('/')
       end
 
       rule(:v_character) {
