@@ -219,17 +219,34 @@ describe 'Symbols' do
     it {is_expected.to parse 'false'}
     it {is_expected.not_to parse 'falsy'}
   end
-  describe 'sym_matches' do
-    subject { parser.sym_matches }
 
-    it {is_expected.to parse 'matches '}
-    it {is_expected.not_to parse 'matchess'}
-  end
+  describe 'cADL symbols' do
+    describe 'sym_matches' do
+      subject { parser.sym_matches }
 
-  describe 'sym_existence' do
-    subject {parser.sym_existence}
+      it {is_expected.to parse 'matches '}
+      it {is_expected.not_to parse 'matchess'}
+    end
+    
+    describe 'sym_existence' do
+      subject {parser.sym_existence}
 
-    it {is_expected.to parse 'existence'}
-    it {is_expected.not_to parse 'exists'}
+      it {is_expected.to parse 'existence'}
+      it {is_expected.not_to parse 'exists'}
+    end
+
+    describe 'sym_start_cblock' do
+      subject {parser.sym_start_cblock}
+
+      it {is_expected.to parse "{ --- comments \n\n"}
+      it {is_expected.not_to parse "{ --- comments \n\n terminology"}
+    end
+
+    describe 'sym_end_cblock' do
+      subject {parser.sym_end_cblock}
+
+      it {is_expected.to parse "}"}
+      it {is_expected.not_to parse "}\n\n NEXT sec"}
+    end
   end
 end
