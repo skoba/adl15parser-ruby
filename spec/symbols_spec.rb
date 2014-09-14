@@ -221,6 +221,20 @@ describe 'Symbols' do
   end
 
   describe 'cADL symbols' do
+    describe 'sym_start_cblock' do
+      subject {parser.sym_start_cblock}
+
+      it {is_expected.to parse "{ --- comments \n\n"}
+      it {is_expected.not_to parse "{ --- comments \n\n terminology"}
+    end
+
+    describe 'sym_end_cblock' do
+      subject {parser.sym_end_cblock}
+
+      it {is_expected.to parse "}"}
+      it {is_expected.not_to parse "}\n\n NEXT sec"}
+    end
+
     describe 'sym_matches' do
       subject { parser.sym_matches }
 
@@ -235,18 +249,57 @@ describe 'Symbols' do
       it {is_expected.not_to parse 'exists'}
     end
 
-    describe 'sym_start_cblock' do
-      subject {parser.sym_start_cblock}
+    describe 'sym_occurrences' do
+      subject {parser.sym_occurrences}
 
-      it {is_expected.to parse "{ --- comments \n\n"}
-      it {is_expected.not_to parse "{ --- comments \n\n terminology"}
+      it {is_expected.to parse "occurrences\n"}
+      it {is_expected.not_to parse "occurrences\t next"}
     end
 
-    describe 'sym_end_cblock' do
-      subject {parser.sym_end_cblock}
+    describe 'sym_cardinality' do
+      subject {parser.sym_cardinality}
 
-      it {is_expected.to parse "}"}
-      it {is_expected.not_to parse "}\n\n NEXT sec"}
+      it {is_expected.to parse 'cardinality '}
+      it {is_expected.not_to parse 'cardinality other facts'}
+    end
+
+    describe 'sym_use_node' do
+      subject {parser.sym_use_node}
+
+      it {is_expected.to parse 'use_node'}
+      it {is_expected.not_to parse 'use_node and'}
+    end
+
+    describe 'sym_allow_archetype' do
+      subject {parser.sym_allow_archetype}
+
+      it {is_expected.to parse 'allow_archetype '}
+      it {is_expected.to parse 'use_archetype'}
+      it {is_expected.not_to parse 'archetype'}
+      it {is_expected.not_to parse "allow_archetype*"}
+    end
+
+    describe 'sym_after' do
+      subject {parser.sym_after}
+
+      it {is_expected.to parse 'after '}
+      it {is_expected.not_to parse "after\nsecond"}
+    end
+
+    describe 'sym_before' do
+      subject {parser.sym_before}
+
+      it {is_expected.to parse "before\t"}
+      it {is_expected.to parse "before--"}
+      it {is_expected.to parse "before--comment comment\n"}
+      it {is_expected.not_to parse "before--comment\n other"}
+    end
+
+    describe 'sym_closed' do
+      subject {parser.sym_closed}
+
+      it {is_expected.to parse "CLosEd\r"}
+      it {is_expected.not_to parse "CLosEd\rnext"}
     end
   end
 end
