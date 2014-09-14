@@ -665,7 +665,7 @@ module OpenEHR
       (str('.') >> str('0') | (match('[1-9]') >> match('[0-9').repeat)).repeat }
 
       rule(:path_seg) {
-      match('[a-z]') >> match('[a-zA-Z0-9_]').repeat >> (str('[id') >> (str('0') | (match('[1-9]') >> match('[0-9]').repeat) >> (str('.') >> (str('0') | (match('[1-9]') >> match('[0-9]').repeat)).repeat >> str(']')))).maybe }
+        match('[a-z]') >> match('[a-zA-Z0-9_]').repeat >> (str('[id') >> (str('0') | (match('[1-9]') >> match('[0-9]').repeat) >> (str('.') >> (str('0') | (match('[1-9]') >> match('[0-9]').repeat)).repeat >> str(']')))).maybe }
       rule(:number) {match '[0-9]'}
 
       rule(:v_dotted_numeric) {
@@ -705,7 +705,7 @@ module OpenEHR
         stri('generated') >> spaces }
 
       rule(:sym_specialize) {
-        (stri('specialised') | stri('specialized')) >> spaces? }
+        (stri('specialised') | stri('specialized')) >> spaces }
 
       rule(:concept) {
         stri('concept') >> spaces? }
