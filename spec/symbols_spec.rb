@@ -1,89 +1,235 @@
 describe 'Symbols' do
   let(:parser) { OpenEHR::Parser::ADL15Parslet.new }
 
-  describe 'sym_matches' do
-    let(:sym_matches) { parser.sym_matches }
-
-    it 'matches matches' do
-      expect(sym_matches).to parse 'matches '
-    end
-
-    it 'does not match matchess' do
-      expect(sym_matches).not_to parse 'matchess'
-    end
-  end
-
   describe 'sym_archetype' do
-    let(:sym_archetype) { parser.sym_archetype }
+    subject { parser.sym_archetype }
 
-    it 'matches archetype' do
-      expect(sym_archetype).to parse 'ArCheType'
-    end
-
-    it 'does not match archytype' do
-      expect(sym_archetype).not_to parse 'archytype'
-    end
+    it {is_expected.to parse 'ArCheType'}
+    it {is_expected.not_to parse 'archytype'}
   end
 
   describe 'sym_template' do
-    let(:sym_template) { parser.sym_template }
+    subject { parser.sym_template }
 
-    it 'matches template' do
-      expect(sym_template).to parse 'TEMPLATE'
-    end
+    it {is_expected.to parse 'TEMPLATE'}
 
-    it 'does not match tenplate' do
-      expect(sym_template).not_to parse 'tenplate'
-    end
+    it {is_expected.not_to parse 'tenplate'}
   end
 
   describe 'sym_template_overlay' do
-    let(:sym_template_overlay) {parser.sym_template_overlay}
+    subject {parser.sym_template_overlay}
 
-    it 'matches template overlay' do
-      expect(sym_template_overlay).to parse 'template_overlay-- comment'
-    end
-
-    it 'dones not match template_over_lay' do
-      expect(sym_template_overlay).not_to parse 'template_over_lay'
-    end
+    it {is_expected.to parse 'template_overlay-- comment'}
+    it {is_expected.not_to parse 'template_over_lay'}
   end
 
   describe 'sym_operational_template' do
-    let(:sym_operational_template) {parser.sym_operational_template}
+    subject {parser.sym_operational_template}
 
-    it 'matches operational_template' do
-      expect(sym_operational_template).to parse 'operational_template'
-    end
-
-    it 'does not match operational template' do
-      expect(sym_operational_template).not_to parse 'operational template'
-    end
+    it {is_expected.to parse 'operational_template'}
+    it {is_expected.not_to parse 'operational template'}
   end
 
   describe 'sym_adl_version' do
-    let(:sym_adl_version) {parser.sym_adl_version}
+    subject {parser.sym_adl_version}
 
-    it 'matches adl_version' do
-      expect(sym_adl_version).to parse "ADL_VERSION\n\n"
-    end
-
-    it 'does not match adl_verison' do
-      expect(sym_adl_version).not_to parse 'adl_verison'
-    end
+    it {is_expected.to parse "ADL_VERSION\n\n"}
+    it {is_expected.not_to parse 'adl_verison'}
   end
 
-  it 'matches controlled' do
-    expect(parser.sym_is_controlled).to parse 'controlled'
+  describe 'sym_is_controled' do
+    subject {parser.sym_is_controlled}
+
+    it {is_expected.to parse 'controlled' }
+    it {is_expected.not_to parse 'is_controlled'}
   end
 
-  it 'matches generated' do
-    expect(parser.sym_is_generated).to parse 'generated'
+  describe 'sym_is_generated' do
+    subject {parser.sym_is_generated}
+
+    it {is_expected.to parse 'generated'}
+    it {is_expected.not_to parse 'is_generated'}
   end
 
-  it 'matches specialised' do
-    expect(parser.sym_specialize).to parse 'specialised'
+  describe 'sym_specialize' do
+    subject {parser.sym_specialize}
+
+    it {is_expected.to parse 'specialized'}
+    it {is_expected.to parse 'specialised'}
+    it {is_expected.not_to parse 'specialize'}
   end
 
-  it 'matches'
+  describe 'sym_concept' do
+    subject {parser.sym_concept}
+
+    it {is_expected.to parse 'concept'}
+    it {is_expected.not_to parse 'context'}
+  end
+
+  describe 'sym_definition' do
+    subject {parser.sym_definition}
+
+    it {is_expected.to parse 'DefinItion'}
+    it {is_expected.not_to parse 'Definitions'}
+  end
+
+  describe 'sym_language' do
+    subject {parser.sym_language}
+
+    it {is_expected.to parse 'language'}
+    it {is_expected.not_to parse 'other_language'}
+  end
+
+  describe 'sym_description' do
+    subject {parser.sym_description}
+
+    it {is_expected.to parse 'description'}
+    it {is_expected.not_to parse "definition"}
+  end
+
+  describe 'sym_invariant' do
+    subject {parser.sym_invariant}
+
+    it {is_expected.to parse 'invariant'}
+    it {is_expected.not_to parse 'invariance'}
+  end
+
+  describe 'sym_terminology' do
+    subject {parser.sym_terminology}
+
+    it {is_expected.to parse "TERMINOLOGY\t\t\t"}
+    it {is_expected.not_to parse 'ONTOLOGY'}
+  end
+
+  describe 'sym_ontology' do
+    subject {parser.sym_ontology}
+
+    it {is_expected.to parse 'ONTOLOGY   '}
+    it {is_expected.not_to parse 'TERMINOLOGY'}
+  end
+
+  describe 'sym_rules' do
+    subject {parser.sym_rules}
+
+    it {is_expected.to parse 'rules   '}
+    it {is_expected.not_to parse 'rurles'}
+  end
+
+  describe 'sym_annotations' do
+    subject {parser.sym_annotations}
+
+    it {is_expected.to parse 'annotations'}
+    it {is_expected.not_to parse 'anotation'}
+  end
+
+  describe 'sym_component_terminologies' do
+    subject {parser.sym_component_terminologies}
+
+    it {is_expected.to parse 'component_terminologies'}
+    it {is_expected.not_to parse 'component terminology'}
+  end
+
+  describe 'sym_uid' do
+    subject {parser.sym_uid}
+
+    it {is_expected.to parse 'uid  '}
+    it {is_expected.not_to parse 'uuid'}
+  end
+
+  describe 'sym_start_dblock' do
+    subject {parser.sym_start_dblock}
+
+    it {is_expected.to parse "< \n\n --\n\n"}
+    it {is_expected.not_to parse "{"}
+  end
+
+  describe 'sym_end_dblock' do
+    subject {parser.sym_end_dblock}
+
+    it {is_expected.to parse '>'}
+    it {is_expected.not_to parse '}'}
+  end
+
+  describe 'sym_interval_delim' do
+    subject {parser.sym_interval_delim}
+
+    it {is_expected.to parse '|   '}
+    it {is_expected.not_to parse ';'}
+  end
+
+  describe 'sym_eq' do
+    subject {parser.sym_eq}
+      
+    it {is_expected.to parse '= '}
+    it {is_expected.not_to parse '>'}
+  end
+
+  describe 'sym_ge' do
+    subject {parser.sym_ge}
+
+    it {is_expected.to parse '>='}
+    it {is_expected.not_to parse '=>'}
+  end
+
+  describe 'sym_le' do
+    subject {parser.sym_le}
+
+    it {is_expected.to parse '<='}
+    it {is_expected.not_to parse '=<'}
+  end
+
+  describe 'sym_lt' do
+    subject {parser.sym_lt}
+
+    it {is_expected.to parse '<'}
+    it {is_expected.not_to parse '>'}
+  end
+
+  describe 'sym_gt' do
+    subject {parser.sym_gt}
+
+    it {is_expected.to parse '>'}
+    it {is_expected.not_to parse '='}
+  end
+
+  describe 'sym_ellipsis' do
+    subject {parser.sym_ellipsis}
+
+    it {is_expected.to parse '..'}
+    it {is_expected.not_to parse '...'}
+  end
+
+  describe 'sym_list_continue' do
+    subject {parser.sym_list_continue}
+
+    it {is_expected.to parse '...'}
+    it {is_expected.not_to parse '..'}
+  end
+
+  describe 'sym_true' do
+    subject {parser.sym_true}
+
+    it {is_expected.to parse 'TRUE'}
+    it {is_expected.not_to parse 'Truth'}
+  end
+
+  describe 'sym_false' do
+    subject {parser.sym_false}
+
+    it {is_expected.to parse 'false'}
+    it {is_expected.not_to parse 'falsy'}
+  end
+  describe 'sym_matches' do
+    subject { parser.sym_matches }
+
+    it {is_expected.to parse 'matches '}
+    it {is_expected.not_to parse 'matchess'}
+  end
+
+  describe 'sym_existence' do
+    subject {parser.sym_existence}
+
+    it {is_expected.to parse 'existence'}
+    it {is_expected.not_to parse 'exists'}
+  end
 end

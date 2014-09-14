@@ -707,8 +707,8 @@ module OpenEHR
       rule(:sym_specialize) {
         (stri('specialised') | stri('specialized')) >> spaces }
 
-      rule(:concept) {
-        stri('concept') >> spaces? }
+      rule(:sym_concept) {
+        stri('concept') >> spaces }
 
       rule(:sym_definition) {
         stri('definition') >> spaces }
@@ -720,7 +720,7 @@ module OpenEHR
         stri('description') >> spaces }
 
       rule(:sym_invariant) {
-        stri('invariant') >> spaces? }
+        stri('invariant') >> spaces }
 
       rule(:sym_terminology) {
         stri('terminology') >> spaces }
@@ -735,7 +735,7 @@ module OpenEHR
         stri('annotations') >> spaces }
 
       rule(:sym_component_terminologies) {
-        stri('component_terminologies') >> spaces? }
+        stri('component_terminologies') >> spaces }
 
       rule(:sym_uid) {
         stri('uid') >> spaces }
@@ -753,10 +753,10 @@ module OpenEHR
         str('=') >> spaces }
 
       rule(:sym_ge) {
-        str('>=') >> spaces? }
+        str('>=') >> spaces }
 
       rule(:sym_le) {
-        str('<=') >> spaces? }
+        str('<=') >> spaces }
 
       rule(:sym_lt) { sym_start_dblock }
 
