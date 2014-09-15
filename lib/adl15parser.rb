@@ -139,8 +139,8 @@ module OpenEHR
          sym_matches >>
          sym_start_cblock >>
          c_complex_object_body >>
-         sym_end_cblock) #|
-#         c_complex_object_head 
+         sym_end_cblock) |
+          c_complex_object_head 
       end
 
       rule(:c_complex_object_head) {
@@ -944,19 +944,19 @@ module OpenEHR
       rule(:v_string) do
         str('"') >>
         (
-         (str('\\') >> any) |
+         (str("\\") >> any) |
          (str('"').absent? >> any)
-         ).repeat.as(:string) >>
-          str('"') >> spaces
+         ).repeat.as(:value) >>
+          str('"')
       end
       
       rule(:v_regexp) do
-        str('{/') >>
+        str('/') >>
         (
          (str('\\') >> any) |
-         (str('/}').absent? >> any)
-         ).repeat.as(:string) >>
-          str('/}') >> spaces
+         (str('/').absent? >> any)
+         ).repeat.as(:regexp) >>
+          str('/')
       end
 
       rule(:v_character) {
