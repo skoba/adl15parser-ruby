@@ -54,7 +54,7 @@ describe 'Symbols' do
   describe 'sym_specialize' do
     subject {parser.sym_specialize}
 
-v    it {is_expected.to parse 'specialized'}
+    it {is_expected.to parse 'specialized'}
     it {is_expected.to parse 'specialised'}
     it {is_expected.not_to parse 'specialize'}
   end
