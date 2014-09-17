@@ -70,7 +70,12 @@ module OpenEHR
 
       root :input
 
-      rule(:input) { archetype } #| specialised_archetype | tempalate | template_overlay | operational_template }
+      rule(:input) {
+        archetype }#|
+#        specialised_archetype |
+#        tempalate |
+#        template_overlay |
+#        operational_template }
 
       rule(:archetype) do
         archetype_marker >>
@@ -661,11 +666,12 @@ module OpenEHR
       rule(:id_code_leader) {str 'id'}
 
       rule(:code_str) {
-        (str('0') | (match('[1-9]') >> match('[0-9').repeat)) >>
-      (str('.') >> str('0') | (match('[1-9]') >> match('[0-9').repeat)).repeat }
+        (str('0') | (match('[1-9]') >> match('[0-9]').repeat)) >>
+        (str('.') >> str('0') | (match('[1-9]') >> match('[0-9]').repeat)).repeat }
 
       rule(:path_seg) {
         match('[a-z]') >> match('[a-zA-Z0-9_]').repeat >> (str('[id') >> (str('0') | (match('[1-9]') >> match('[0-9]').repeat) >> (str('.') >> (str('0') | (match('[1-9]') >> match('[0-9]').repeat)).repeat >> str(']')))).maybe }
+
       rule(:number) {match '[0-9]'}
 
       rule(:v_dotted_numeric) {
@@ -895,7 +901,12 @@ module OpenEHR
         stri('HH') >> str(':') >> match('[mM?X]').repeat(2,2) >> str(':') >> match('[sS?X]').repeat(2,2) }
 
       rule(:v_iso8601_date_time_constraint_pattern) {
-        stri('YYYY') >> str('-') >> match('[mM?X]').repeat(2,2) >> str('-') >> match('[dD?X]').repeat(2,2)>> match('[T ]') >> stri('HH') >> str(':') >> match('[mM?X]').repeat(2,2) >> str(':') >> match('[sS?X]').repeat(2,2) }
+        stri('YYYY') >> str('-') >>
+        match('[mM?X]').repeat(2,2) >> str('-') >>
+        match('[dD?X]').repeat(2,2)>> match('[T ]') >>
+        stri('HH') >> str(':') >>
+        match('[mM?X]').repeat(2,2) >> str(':') >>
+        match('[sS?X]').repeat(2,2) }
 
       rule(:v_iso8601_duration_constraint_pattern) {
         str('P') >> stri('Y').maybe >> stri('M').maybe >> stri('W').maybe >> stri('D').maybe >> str('T') >> stri('H').maybe >> stri('M').maybe >> stri('S').maybe |

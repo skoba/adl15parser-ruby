@@ -16,7 +16,18 @@ describe 'valued strings' do
     it {is_expected.not_to parse '[id11]'}
   end
 
-  it 'v_id_code' do
-    subject {parser.v_id_code}x
+  describe 'v_id_code' do
+    subject {parser.v_id_code}
+
+    it {is_expected.to parse '[id123]'}
+    it {is_expected.not_to parse '[at0001'}
+  end
+
+  describe 'v_qualified_term_code_ref' do
+    subject {parser.v_qualified_term_code_ref}
+
+    it {is_expected.to parse '[123::456]'}
+    it {is_expected.not_to parse '[]'}
+    it {is_expected.not_to parse '[123::  45 6]'}
   end
 end
