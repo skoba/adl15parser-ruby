@@ -669,7 +669,7 @@ module OpenEHR
       rule(:number) {match '[0-9]'}
 
       rule(:v_dotted_numeric) {
-        number >> str('.') >> number >> (str('.') >> number).maybe}
+        number >> str('.') >> number >> (str('.') >> number >> (str('-') >> alphanum.repeat(1)).maybe).maybe}
 
       rule(:space) { match '\s' }
 
