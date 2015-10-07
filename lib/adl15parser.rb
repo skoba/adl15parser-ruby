@@ -70,7 +70,12 @@ module OpenEHR
 
       root :input
 
-      rule(:input) { archetype } #| specialised_archetype | tempalate | template_overlay | operational_template }
+      rule(:input) {
+        archetype }#|
+#        specialised_archetype |
+#        tempalate |
+#        template_overlay |
+#        operational_template }
 
       rule(:archetype) do
         archetype_marker >>
@@ -661,11 +666,12 @@ module OpenEHR
       rule(:id_code_leader) {str 'id'}
 
       rule(:code_str) {
-        (str('0') | (match('[1-9]') >> match('[0-9').repeat)) >>
-      (str('.') >> str('0') | (match('[1-9]') >> match('[0-9').repeat)).repeat }
+        (str('0') | (match('[1-9]') >> match('[0-9]').repeat)) >>
+        (str('.') >> str('0') | (match('[1-9]') >> match('[0-9]').repeat)).repeat }
 
       rule(:path_seg) {
-      match('[a-z]') >> match('[a-zA-Z0-9_]').repeat >> (str('[id') >> (str('0') | (match('[1-9]') >> match('[0-9]').repeat) >> (str('.') >> (str('0') | (match('[1-9]') >> match('[0-9]').repeat)).repeat >> str(']')))).maybe }
+        match('[a-z]') >> match('[a-zA-Z0-9_]').repeat >> (str('[id') >> (str('0') | (match('[1-9]') >> match('[0-9]').repeat) >> (str('.') >> (str('0') | (match('[1-9]') >> match('[0-9]').repeat)).repeat >> str(']')))).maybe }
+
       rule(:number) {match '[0-9]'}
 
       rule(:v_dotted_numeric) {
@@ -703,10 +709,10 @@ module OpenEHR
         stri('generated') >> spaces }
 
       rule(:sym_specialize) {
-        (stri('specialised') | stri('specialized')) >> spaces? }
+        (stri('specialised') | stri('specialized')) >> spaces }
 
-      rule(:concept) {
-        stri('concept') >> spaces? }
+      rule(:sym_concept) {
+        stri('concept') >> spaces }
 
       rule(:sym_definition) {
         stri('definition') >> spaces }
@@ -718,7 +724,7 @@ module OpenEHR
         stri('description') >> spaces }
 
       rule(:sym_invariant) {
-        stri('invariant') >> spaces? }
+        stri('invariant') >> spaces }
 
       rule(:sym_terminology) {
         stri('terminology') >> spaces }
@@ -733,7 +739,7 @@ module OpenEHR
         stri('annotations') >> spaces }
 
       rule(:sym_component_terminologies) {
-        stri('component_terminologies') >> spaces? }
+        stri('component_terminologies') >> spaces }
 
       rule(:sym_uid) {
         stri('uid') >> spaces }
@@ -751,10 +757,10 @@ module OpenEHR
         str('=') >> spaces }
 
       rule(:sym_ge) {
-        str('>=') >> spaces? }
+        str('>=') >> spaces }
 
       rule(:sym_le) {
-        str('<=') >> spaces? }
+        str('<=') >> spaces }
 
       rule(:sym_lt) { sym_start_dblock }
 
@@ -893,7 +899,12 @@ module OpenEHR
         stri('HH') >> str(':') >> match('[mM?X]').repeat(2,2) >> str(':') >> match('[sS?X]').repeat(2,2) }
 
       rule(:v_iso8601_date_time_constraint_pattern) {
-        stri('YYYY') >> str('-') >> match('[mM?X]').repeat(2,2) >> str('-') >> match('[dD?X]').repeat(2,2)>> match('[T ]') >> stri('HH') >> str(':') >> match('[mM?X]').repeat(2,2) >> str(':') >> match('[sS?X]').repeat(2,2) }
+        stri('YYYY') >> str('-') >>
+        match('[mM?X]').repeat(2,2) >> str('-') >>
+        match('[dD?X]').repeat(2,2)>> match('[T ]') >>
+        stri('HH') >> str(':') >>
+        match('[mM?X]').repeat(2,2) >> str(':') >>
+        match('[sS?X]').repeat(2,2) }
 
       rule(:v_iso8601_duration_constraint_pattern) {
         str('P') >> stri('Y').maybe >> stri('M').maybe >> stri('W').maybe >> stri('D').maybe >> str('T') >> stri('H').maybe >> stri('M').maybe >> stri('S').maybe |
