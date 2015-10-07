@@ -1,7 +1,6 @@
 describe 'v_string' do
   let(:parser) { OpenEHR::Parser::ADL15Parslet.new.v_string }
   let(:transformer) {VstringTransformer.new}
-
   
   context 'matches characters in double quatation' do
     it 'parses V_STRING rule' do
