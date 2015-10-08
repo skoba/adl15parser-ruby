@@ -1,7 +1,7 @@
-guard 'rspec', cmd: 'bundle exec rspec --drb' do
+guard 'rspec', cmd: 'bundle exec rspec' do
   watch('spec/spec_helper.rb') { :rspec }
   watch('lib/adl15parser.rb') { :rspec }
-  watch('lib/(.+)\.rb'){ |m| "spec/lib/#{m[1]}_spec.rb" }  
+  watch(/lib\/(.+)\.rb/){ |m| "spec/lib/#{m[1]}_spec.rb" }  
   watch(%r{^spec/.+_spec\.rb$})
 end
 
