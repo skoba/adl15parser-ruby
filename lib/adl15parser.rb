@@ -20,7 +20,7 @@ module OpenEHR
           filestream.close
         rescue Parslet::ParseFailed => e
           puts e.cause.ascii_tree
-        end        
+        end
         arch_mock
       end
 
@@ -48,7 +48,9 @@ module OpenEHR
     end
 
     class ADL15Transformer < ::Parslet::Transform
-      rule(term_id: simple(:id)) {OpenEHR::RM::Support::Identification::TerminologyID.new(value: id.to_s)}
+      rule(terminology_id: simple(:id)) do
+        OpenEHR::RM::Support::Identification::TerminologyID.new(value: id.to_s)
+      end
 
       rule(term_code: {terminology_id: simple(:id), code: simple(:c)}) do
         OpenEHR::RM::DataTypes::Text::CodePhrase.new(terminology_id: id, code_string: c.to_s)
@@ -125,7 +127,7 @@ module OpenEHR
         sym_definition >> v_cadl_text }
 
       rule(:arch_rules) {
-#        str('-/-') |
+        str('-/-') |
         sym_rules >> v_rules_text }
 
       rule(:arch_terminology) {
@@ -826,7 +828,7 @@ module OpenEHR
         str('[') >> id_code_leader >> code_str >> str(']') }
 
       rule(:v_qualified_term_code_ref) {
-        str('[') >> namechar_paren.repeat(1).as(:term_id).as(:terminology_id) >>
+        str('[') >> namechar_paren.repeat(1).as(:terminology_id) >>
         str('::') >> namechar.repeat(1).as(:code) >> str(']') >> spaces }
 
       rule(:err_v_qualified_term_code_ref) {

@@ -1,17 +1,26 @@
 # -*- coding: utf-8 -*-
 describe 'arch_language parser' do
-  let(:parser) {
-    OpenEHR::Parser::ADL15Parslet.new.arch_language }
+  let(:parser) { OpenEHR::Parser::ADL15Parslet.new.arch_language }
 
   it 'parse language section' do
     expect(parser).to parse ORIGINAL_LANGUAGE
   end
 
+  it 'parse and transform langauage section' do
+    transformer = ADL15LangTransformer.new
+    p transformer.apply(parser.parse(ORIGINAL_LANGUAGE))
+  end
+
   it 'parse with multiple translations' do
     expect(parser).to parse WITH_TRANSLATIONS
-  end  
+  end
 end
 
+class ADL15LangTransformer < ::Parslet::Transform
+  rule original_language(language: simple(:language)) do
+    language_to_s
+  end
+end
 
 ORIGINAL_LANGUAGE =<<DOC
 language
