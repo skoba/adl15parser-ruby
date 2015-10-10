@@ -14,6 +14,7 @@ describe OpenEHR::Parser::ADL15Parser do
     end
 
     it 'ADL version equals 1.5' do
+      skip
       expect(archetype.adl_version).to eq '1.5'
     end
 

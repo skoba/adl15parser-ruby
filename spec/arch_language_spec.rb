@@ -7,8 +7,9 @@ describe 'arch_language parser' do
   end
 
   it 'parse and transform langauage section' do
+    skip
     transformer = ADL15LangTransformer.new
-    p transformer.apply(parser.parse(ORIGINAL_LANGUAGE))
+    expect(transformer.apply(parser.parse(ORIGINAL_LANGUAGE))).to eq ORIGINAL_LANGUAGE
   end
 
   it 'parse with multiple translations' do
@@ -16,11 +17,11 @@ describe 'arch_language parser' do
   end
 end
 
-class ADL15LangTransformer < ::Parslet::Transform
-  rule original_language(language: simple(:language)) do
-    language_to_s
-  end
-end
+# class ADL15LangTransformer < ::Parslet::Transform
+#   rule original_language(language: simple(:language)) do
+#     language_to_s
+#   end
+# end
 
 ORIGINAL_LANGUAGE =<<DOC
 language

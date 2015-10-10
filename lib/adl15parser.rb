@@ -943,9 +943,9 @@ module OpenEHR
         value_str.as(:value) }
 
       rule(:v_integer) {
-        match('[0-9]').repeat(1) |
+        (match('[0-9]').repeat(1) |
         (match('[0-9]').repeat(1) >> stri('e') >>
-         match('[+-]').maybe >> match([0-9]).repeat(1)) }
+         match('[+-]').maybe >> match([0-9]).repeat(1))).as(:value) }
 
       rule(:v_real) {
         match('[0-9]').repeat(1) >> str('.') >> match('[0-9]').repeat(1) |
