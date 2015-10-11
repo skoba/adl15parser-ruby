@@ -966,7 +966,7 @@ module OpenEHR
         (
          (str('\\') >> any) |
          (str('/').absent? >> any)
-         ).repeat.as(:regexp) >>
+         ).repeat.as(:value) >>
           str('/')
       end
 
