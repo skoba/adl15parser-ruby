@@ -13,7 +13,7 @@ describe 'v_uri' do
 end
 
 class VUriTransformer < ::Parslet::Transform
-  rule(uri: simple(:x)) { x.to_s }
+  rule(value: simple(:x)) { x.to_s }
 end
 
 URI = "http://openEHR.org/home"

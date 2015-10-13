@@ -815,7 +815,7 @@ module OpenEHR
       # valued strings
       rule(:v_uri) {
         (match('[a-z]').repeat(1) >> str('://') >>
-        match('[^<>|\\{}^~"\[\])]').repeat).as(:uri) >> spaces }
+         match('[^<>|\\{}^~"\[\])]').repeat).as(:value) >> spaces }
 
       rule(:v_root_id_code) {
         str('[') >> id_code_leader >> str('1') >> str('.1').repeat >> str(']')}
