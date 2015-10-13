@@ -30,4 +30,8 @@ describe 'valued strings' do
     it {is_expected.not_to parse '[]'}
     it {is_expected.not_to parse '[123::  45 6]'}
   end
+
+  describe 'v_local_term_code_ref' do
+    subject {parser.v_local_}
+  end
 end
