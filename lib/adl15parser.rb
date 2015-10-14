@@ -937,7 +937,7 @@ module OpenEHR
           ((str('-rc') | str('+u') | str('+')) >> match('[0-9]').repeat(1)).maybe).maybe) }
 
       rule(:v_identifier) {
-        namestr }
+        namestr.as(:value) }
 
       rule(:v_value) {
         value_str.as(:value) }
