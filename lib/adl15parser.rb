@@ -923,7 +923,8 @@ module OpenEHR
         match('[_a-z]') >> idchar.repeat }      
 
       rule(:v_abs_path) {
-      str('/')}
+        str('/')}
+
       rule(:v_archetype_id) {
         ((namestr >> (str('.') >> alphanum_str).repeat >>
           str('::')).maybe >>
@@ -934,7 +935,7 @@ module OpenEHR
          (str('-') >> alphanum_str).repeat >>
          str('.v') >> match('[0-9]').repeat(1) >>
          ((str('.') >> match('[0-9]').repeat(1)).repeat(0,2) >>
-          ((str('-rc') | str('+u') | str('+')) >> match('[0-9]').repeat(1)).maybe).maybe) }
+          ((str('-rc') | str('+u') | str('+')) >> match('[0-9]').repeat(1)).maybe).maybe).as(:value) }
 
       rule(:v_identifier) {
         namestr.as(:value) }
