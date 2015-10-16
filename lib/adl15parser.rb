@@ -972,7 +972,7 @@ module OpenEHR
       end
 
       rule(:v_character) {
-        match('[^\\\n\"]') }
+        match("[^\\\n\"]").as(:value) }
     end
   end
 end
