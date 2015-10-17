@@ -14,9 +14,10 @@ describe 'v_character' do
     expect(parser).not_to parse DOUBLE_QUATATION
   end
 
-  # it 'does not parse backslash' do
-  #   expect(parser).not_to parse BACKSLASH
-  # end
+  it 'does not parse backslash' do
+
+    expect(parser).not_to parse BACKSLASH
+  end
 
   it 'transform valid character' do
     result = transformer.apply(parser.parse VALID_CHAR)
