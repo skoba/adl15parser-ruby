@@ -15,7 +15,6 @@ describe 'v_character' do
   end
 
   it 'does not parse backslash' do
-
     expect(parser).not_to parse BACKSLASH
   end
 
