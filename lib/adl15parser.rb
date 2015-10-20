@@ -919,8 +919,8 @@ module OpenEHR
         match('[A-Z]') >> idchar.repeat >>
         str('<') >> match('[a-zA-Z0-9,_<>]').repeat(1) >> str('>') }
 
-      rule(:v_attribute_identifier) {
-        match('[_a-z]') >> idchar.repeat }      
+      rule(:v_attribute_identifier){
+        (match('[_a-z]') >> idchar.repeat).as(:value) }
 
       rule(:v_abs_path) {
         str('/')}
