@@ -913,7 +913,7 @@ module OpenEHR
         str('P') >> stri('Y').maybe >> stri('M').maybe >> stri('W').maybe >> stri('D').maybe }
 
       rule(:v_type_identifier) {
-        match('[A-Z]') >> idchar.repeat }
+        (match('[A-Z]') >> idchar.repeat).as(:value) }
 
       rule(:v_generic_type_identifier) {
         match('[A-Z]') >> idchar.repeat >>
